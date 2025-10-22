@@ -19,6 +19,13 @@ jobs:
             GITHUB_ENVIRONMENT: ${{ fromJson(steps.variables.outputs.result).GITHUB_ENVIRONMENT }}
             FRONTEND_HOSTNAME: ${{ fromJson(steps.variables.outputs.result).FRONTEND_HOSTNAME }}
             ZTOR_HOSTNAME: ${{ fromJson(steps.variables.outputs.result).ZTOR_HOSTNAME }}
+            AZURE_STORAGE_ACCOUNT_NAME: ${{ fromJson(steps.variables.outputs.result).AZURE_STORAGE_ACCOUNT_NAME }}
+            AZURE_STORAGE_CONTAINER: ${{ fromJson(steps.variables.outputs.result).AZURE_STORAGE_CONTAINER }}
+            DB_NAME: ${{ fromJson(steps.variables.outputs.result).DB_NAME }}
+            MINIO_ACCESS_KEY: ${{ fromJson(steps.variables.outputs.result).MINIO_ACCESS_KEY }}
+            MINIO_ER_EXCEL_UPLOAD_BUCKET: ${{ fromJson(steps.variables.outputs.result).MINIO_ER_EXCEL_UPLOAD_BUCKET }}
+            CORS_ALLOW_ORIGIN_PATTERN: ${{ fromJson(steps.variables.outputs.result).CORS_ALLOW_ORIGIN_PATTERN }}
+            OAUTH_CLIENT_ID: ${{ fromJson(steps.variables.outputs.result).OAUTH_CLIENT_ID }}
         steps:
             -   uses: actions/checkout@v4
                 with:
@@ -117,9 +124,9 @@ jobs:
             image: redgate/flyway:10.2.0
             env:
                 ## TODO: in case of pull request, copy and migrate test database
-                FLYWAY_URL: jdbc:postgresql://postgres.zenmo.com:5432/${{ vars.DB_NAME }}
-                FLYWAY_USER: ${{ vars.DB_NAME }}
-                FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                FLYWAY_URL: jdbc:postgresql://postgres.zenmo.com:5432/${{ needs.variables.outputs.DB_NAME }}
+                FLYWAY_USER: ${{ needs.variables.outputs.DB_NAME }}
+                FLYWAY_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
                 FLYWAY_LOCATIONS: filesystem:./migrations
                 FLYWAY_BASELINE_ON_MIGRATE: true
         steps:
@@ -147,17 +154,19 @@ jobs:
                 uses: sagebind/docker-swarm-deploy-action@v2
                 env:
                     TAG: ${{ needs.variables.outputs.VERSION_TAG }}
-                    FRONTEND_HOSTNAME: ${{ vars.FRONTEND_HOSTNAME || needs.variables.outputs.FRONTEND_HOSTNAME }}
-                    ZTOR_HOSTNAME: ${{ vars.ZTOR_HOSTNAME || needs.variables.outputs.ZTOR_HOSTNAME }}
-                    DB_NAME: ${{ vars.DB_NAME }}
-                    POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                    FRONTEND_HOSTNAME: ${{ needs.variables.outputs.FRONTEND_HOSTNAME }}
+                    ZTOR_HOSTNAME: ${{ needs.variables.outputs.ZTOR_HOSTNAME }}
+                    DB_NAME: ${{ needs.variables.outputs.DB_NAME }}
+                    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
                     AZURE_STORAGE_ACCOUNT_NAME: zerostore
                     AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-                    AZURE_STORAGE_CONTAINER: ${{ vars.AZURE_STORAGE_CONTAINER }}
-                    MINIO_ER_EXCEL_UPLOAD_BUCKET: ${{ vars.MINIO_ER_EXCEL_UPLOAD_BUCKET }}
-                    CORS_ALLOW_ORIGIN_PATTERN: ${{ vars.CORS_ALLOW_ORIGIN_PATTERN }}
-                    OAUTH_CLIENT_ID: ${{ vars.OAUTH_CLIENT_ID }}
+                    AZURE_STORAGE_CONTAINER: ${{ needs.variables.outputs.AZURE_STORAGE_CONTAINER }}
+                    MINIO_ER_EXCEL_UPLOAD_BUCKET: ${{ needs.variables.outputs.MINIO_ER_EXCEL_UPLOAD_BUCKET }}
+                    CORS_ALLOW_ORIGIN_PATTERN: ${{ needs.variables.outputs.CORS_ALLOW_ORIGIN_PATTERN }}
+                    OAUTH_CLIENT_ID: ${{ needs.variables.outputs.OAUTH_CLIENT_ID }}
                     OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+                    MINIO_ACCESS_KEY: ${{ needs.variables.outputs.MINIO_ACCESS_KEY }}
+                    MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
                 with:
                     remote_host: ssh://root@server.zenmo.com
                     ssh_private_key: ${{ secrets.SWARM_SSH_PRIVATE_KEY }}

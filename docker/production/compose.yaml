@@ -21,7 +21,7 @@ services:
             POSTGRES_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
             # POSTGRES_URL: jdbc:postgresql://postgres.zenmo.com:5432/${DB_NAME}
             POSTGRES_USER: ${DB_NAME}
-            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             AZURE_STORAGE_ACCOUNT_NAME: zerostore
             AZURE_STORAGE_ACCOUNT_KEY: ${AZURE_STORAGE_ACCOUNT_KEY}
             AZURE_STORAGE_CONTAINER: ${AZURE_STORAGE_CONTAINER}

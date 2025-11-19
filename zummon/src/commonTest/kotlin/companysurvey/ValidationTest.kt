@@ -1,6 +1,13 @@
 package companysurvey
 
 import com.zenmo.zummon.companysurvey.*
+import com.zenmo.zummon.companysurvey.validation.ElectricityValidator
+import com.zenmo.zummon.companysurvey.validation.GridConnectionValidator
+import com.zenmo.zummon.companysurvey.validation.Language
+import com.zenmo.zummon.companysurvey.validation.Status
+import com.zenmo.zummon.companysurvey.validation.TransportValidator
+import com.zenmo.zummon.companysurvey.validation.setLanguage
+import com.zenmo.zummon.companysurvey.validation.surveyValidator
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals

@@ -8,7 +8,7 @@ class NaturalGasValidator : Validator<NaturalGas> {
         val results = mutableListOf<ValidationResult>()
 
         results.add(validateAnnualElectricityProduction(naturalGas))
-        results.add(validateAnnualGasDelivery(naturalGas))
+        results.addAll(validateAnnualGasDelivery(naturalGas))
 
         return results
     }
@@ -23,26 +23,41 @@ class NaturalGasValidator : Validator<NaturalGas> {
         }
     }
 
-    //annual gas delivery should match total of hourly delivery
-    fun validateAnnualGasDelivery(naturalGas: NaturalGas): ValidationResult {
-        return if (naturalGas.hourlyDelivery_m3?.values == null) {
-            ValidationResult(Status.MISSING_DATA, translate("naturalGas.hourlyDeliveryNotProvided"))
-        } else {
-            val totalHourlyDelivery = naturalGas.hourlyDelivery_m3.values.sum()
+    // annual gas delivery should match total of hourly delivery
+    fun validateAnnualGasDelivery(naturalGas: NaturalGas): List<ValidationResult> {
+        if (naturalGas.hourlyDelivery_m3 == null) {
+            return listOf(
+                ValidationResult(
+                    Status.MISSING_DATA,
+                    translate("naturalGas.hourlyDeliveryNotProvided")
+                )
+            )
+        }
 
-            val isCloseEnough = naturalGas.annualDelivery_m3?.toFloat()?.let { annualDelivery ->
-                val difference = abs(annualDelivery - totalHourlyDelivery)
-                difference <= 0.01f * annualDelivery // 1% tolerance
-            } ?: false
+        val timeSeriesValidationResult = validateTimeSeries(naturalGas.hourlyDelivery_m3)
 
+        val totalHourlyDelivery = naturalGas.hourlyDelivery_m3.values.sum()
 
+        if (naturalGas.annualDelivery_m3 == null) return listOf(
+            timeSeriesValidationResult,
+            ValidationResult(Status.MISSING_DATA, message(
+                en = "Annual gas delivery not provided",
+                nl = "Jaarlevering gas niet opgegeven",
+            ))
+        )
+
+        val isCloseEnough = naturalGas.annualDelivery_m3.toFloat().let { annualDelivery ->
+            val difference = abs(annualDelivery - totalHourlyDelivery)
+            difference <= 0.01f * annualDelivery // 1% tolerance
+        }
+
+        return listOf(
+            timeSeriesValidationResult,
             if (isCloseEnough) {
                 ValidationResult(Status.VALID, translate("naturalGas.annualGasDeliveryValid", naturalGas.annualDelivery_m3))
             } else {
                 ValidationResult(Status.INVALID, translate("naturalGas.annualGasDeliveryMismatch", naturalGas.annualDelivery_m3, totalHourlyDelivery))
             }
-        }
+        )
     }
-
-
 }

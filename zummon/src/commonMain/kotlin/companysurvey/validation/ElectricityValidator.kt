@@ -178,42 +178,25 @@ class ElectricityValidator : Validator<Electricity> {
         }
     }
 
-    // quarter-hourly delivery data should not have "holes" longer than 4 days. Display duration of hole in message.
     fun validateQuarterHourlyDeliveryData(electricity: Electricity): ValidationResult {
-        electricity.quarterHourlyDelivery_kWh?.values ?: return ValidationResult(
-            Status.MISSING_DATA,
-            translate("electricity.quarterHourlyDeliveryDataNotProvided")
-        )
-
-        var maxNullSequence = electricity.quarterHourlyDelivery_kWh.lengthEmptyGapsData()
-
-        return if (maxNullSequence > 384) { // 384 nulls is 4 days of missing data in quarter-hour intervals
-            ValidationResult(
-                Status.INVALID,
-                translate("electricity.quarterHourlyDeliveryDataHolesExceed", maxNullSequence / 4) // Display in hours
+        val quarterHourlyDelivery_kWh = electricity.quarterHourlyDelivery_kWh
+        if (quarterHourlyDelivery_kWh == null) {
+            return ValidationResult(
+                Status.MISSING_DATA,
+                translate("electricity.quarterHourlyDeliveryDataNotProvided")
             )
-        } else {
-            ValidationResult(Status.VALID, translate("electricity.quarterHourlyDeliveryDataValid"))
         }
+
+        return validateTimeSeries(quarterHourlyDelivery_kWh)
     }
 
-    //quarter-hourly production data should not have "holes" longer than 4 days. Display duration of hole in message.
     fun validateQuarterHourlyProductionData(electricity: Electricity): ValidationResult {
         electricity.quarterHourlyProduction_kWh?.values ?: return ValidationResult(
             Status.MISSING_DATA,
             translate("electricity.quarterHourlyProductionDataNotProvided")
         )
 
-        var maxNullSequence = electricity.quarterHourlyProduction_kWh.lengthEmptyGapsData()
-
-        return if (maxNullSequence > 384) { // 384 nulls is 4 days of missing data in quarter-hour intervals
-            ValidationResult(
-                Status.INVALID,
-                translate("electricity.quarterHourlyProductionDataHolesExceed", maxNullSequence / 4) // Display in hours
-            )
-        } else {
-            ValidationResult(Status.VALID, translate("electricity.quarterHourlyProductionDataValid"))
-        }
+        return validateTimeSeries(electricity.quarterHourlyProduction_kWh)
     }
 
     /**

@@ -30,12 +30,8 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
             "withConnection" to "Electricity with connection",
             "withoutConnection" to "Electricity without connection",
             "quarterHourlyDeliveryDataNotProvided" to "Quarter-hourly delivery data is not provided",
-            "quarterHourlyDeliveryDataHolesExceed" to "Quarter-hourly delivery data has a gap of %d hours, exceeding the allowed limit",
-            "quarterHourlyDeliveryDataValid" to "Quarter-hourly delivery data has no gaps exceeding the limit",
 
             "quarterHourlyProductionDataNotProvided" to "Quarter-hourly production data is not provided",
-            "quarterHourlyProductionDataHolesExceed" to "Quarter-hourly production data has a gap of %d hours, exceeding the allowed limit",
-            "quarterHourlyProductionDataValid" to "Quarter-hourly production data has no gaps exceeding the limit",
             "quarterHourlyProductionCannotBeAllZero" to "Quarter-hourly production data cannot be all zeroes when supply is present",
             "quarterHourlyProductionValid" to "Quarter-hourly production data is valid",
 
@@ -139,12 +135,10 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
             "annualProductionFeedInValid" to "Jaartotaal PV-productie %d is geldig, het is meer dan de jaarlijkse teruglevering %d",
             "annualProductionFeedInInvalid" to "Jaartotaal PV-productie %d is minder dan teruglevering %d",
             "quarterHourlyDeliveryDataNotProvided" to "Kwartiergegevens voor levering zijn niet opgegeven",
-            "quarterHourlyDeliveryDataHolesExceed" to "Kwartiergegevens voor levering bevatten een gat van %d uur, boven de toegestane limiet",
             "quarterHourlyDeliveryDataValid" to "Kwartiergegevens voor levering hebben geen gaten boven de limiet",
 
             "quarterHourlyProductionDataNotProvided" to "Kwartiergegevens van de productie zijn niet opgegeven",
             "quarterHourlyProductionDataHolesExceed" to "Kwartiergegevens van de productie hebben een gat van %d uur, dat de toegestane limiet overschrijdt",
-            "quarterHourlyProductionDataValid" to "Kwartiergegevens van de productie hebben geen gaten die de limiet overschrijden",
 
             "quarterHourlyProductionCannotBeAllZero" to "Kwartierwaarden voor productie mogen niet allemaal nul zijn als er opwek is",
             "quarterHourlyProductionValid" to "Kwartierwaarden voor productie zijn geldig",

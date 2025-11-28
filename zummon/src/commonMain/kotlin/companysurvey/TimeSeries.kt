@@ -96,7 +96,7 @@ data class TimeSeries (
         }
     }
 
-    fun lengthEmptyGapsData(): Int {
+    fun getNumberOfValuesOfLongestGap(): Int {
         var maxNullSequence = 0
         var currentNullSequence = 0
 
@@ -113,6 +113,8 @@ data class TimeSeries (
 
         return maxNullSequence
     }
+
+    fun getLongestGapDuration(): Duration = timeStep.toDuration() * getNumberOfValuesOfLongestGap()
 
     fun getPeak(): DataPoint = DataPoint(values.max(), unit, timeStep)
 
@@ -244,33 +246,47 @@ enum class TimeSeriesUnit(val label: String) {
 enum class TimeSeriesType(
     val defaultUnit: TimeSeriesUnit,
     val defaultStep: DateTimeUnit,
+    val nlDisplayName: String,
+    val enDisplayName: String,
 ) {
     // Delivery from grid to end-user
     ELECTRICITY_DELIVERY(
         defaultUnit = TimeSeriesUnit.KWH,
         defaultStep = DateTimeUnit.MINUTE * 15,
+        nlDisplayName = "Kwartierwaarden afname elektriciteit",
+        enDisplayName = "Quarter-hourly electricity delivery",
     ),
     // Feed-in of end-user back in to the rid
     ELECTRICITY_FEED_IN(
         defaultUnit = TimeSeriesUnit.KWH,
         defaultStep = DateTimeUnit.MINUTE * 15,
+        nlDisplayName = "Kwartierwaarden teruglevering elektriciteit",
+        enDisplayName = "Quarter-hourly electricity feed-in",
     ),
     // Solar panel production
     ELECTRICITY_PRODUCTION (
         defaultUnit = TimeSeriesUnit.KWH,
         defaultStep = DateTimeUnit.MINUTE * 15,
+        nlDisplayName = "Kwartierwaarden opwek elektriciteit",
+        enDisplayName = "Quarter-hourly electricity production",
     ),
     GAS_DELIVERY (
         defaultUnit = TimeSeriesUnit.M3,
         defaultStep = DateTimeUnit.HOUR,
+        nlDisplayName = "Uurwaarden afname gas",
+        enDisplayName = "Hourly gas delivery",
     ),
     AGRICULTURE_DIESEL_CONSUMPTION (
         defaultUnit = TimeSeriesUnit.LITER,
         defaultStep = DateTimeUnit.WEEK,
+        nlDisplayName = "Tijdreeks dieselverbruik landbouwvoertuigen",
+        enDisplayName = "Time series diesel consumption of agricultural vehicles",
     ),
     HEAT_PUMP_ELECTRICITY_CONSUMPTION (
         defaultUnit = TimeSeriesUnit.KWH,
         defaultStep = DateTimeUnit.MINUTE * 15,
+        nlDisplayName = "Tijdreeks electriciteitsverbruik warmtepomp",
+        enDisplayName = "Time series electricity consumption of heat pump",
     ),
     /**
      * Heat production of heat pump or delivery from district heating.
@@ -281,6 +297,8 @@ enum class TimeSeriesType(
     HEAT_DELIVERY (
         defaultUnit = TimeSeriesUnit.KWH,
         defaultStep = DateTimeUnit.MINUTE * 15,
+        nlDisplayName = "Tijdreeks afname warmte",
+        enDisplayName = "Heat delivery time series",
     ),
 }
 

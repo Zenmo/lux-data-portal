@@ -1,10 +1,10 @@
 
-val ktor_version = "3.0.3"
+val ktor_version = "3.3.3"
 
 plugins {
     kotlin("jvm")
 
-    id("io.ktor.plugin") version "3.0.3"
+    id("io.ktor.plugin") version "3.3.3"
     kotlin("plugin.serialization")
 }
 

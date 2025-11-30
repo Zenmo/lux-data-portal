@@ -24,7 +24,7 @@ export const ExcelUpload: FunctionComponent<{
                 url={`${import.meta.env.VITE_ZTOR_URL}/excel-upload`}
                 onSelect={resetErrorMessage}
                 onUpload={event => {
-                    setSurveyWithErrors(SurveyWithErrors.Companion.fromJson(event.xhr.responseText))
+                    setSurveyWithErrors(SurveyWithErrors.fromJson(event.xhr.responseText))
                 }}
                 withCredentials={true}
                 onError={(event: FileUploadErrorEvent) => {

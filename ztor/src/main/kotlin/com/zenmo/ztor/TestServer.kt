@@ -1,5 +1,6 @@
 package com.zenmo.ztor
 
+import com.zenmo.orm.connectToPostgres
 import com.zenmo.ztor.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -22,7 +23,8 @@ fun Application.vallumMinimal() {
     configureMonitoring()
     configureSerialization()
     configureAuthentication()
-    val db = configureDatabases()
+    val db = connectToPostgres()
+    configureSurveys(db)
     configureRouting()
     configureStatusPages()
 }

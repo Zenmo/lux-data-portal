@@ -19,10 +19,6 @@ kotlin {
         useEsModules()
         generateTypeScriptDefinitions()
         binaries.library()
-        compilations["main"].packageJson {
-            // hack hack hack
-            types = "kotlin/zeroweb-joshi.d.ts"
-        }
         browser {
         }
     }

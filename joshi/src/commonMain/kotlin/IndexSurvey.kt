@@ -4,6 +4,7 @@ import com.zenmo.zummon.companysurvey.Survey
 import com.zenmo.zummon.jsonDecoder
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.uuid.Uuid
 

@@ -53,12 +53,12 @@ jobs:
             -   name: Setup Gradle
                 uses: gradle/actions/setup-gradle@v3
             -   name: gradle vallum:shadowJar
-                run: gradle vallum:shadowJar
+                run: ./gradlew vallum:shadowJar
             -   name: gradle vallum:publish
                 env:
                     VERSION_TAG: ${{ needs.variables.outputs.VERSION_TAG }}
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                run: gradle vallum:publish
+                run: ./gradlew vallum:publish
 
     build-ztor:
         needs: variables

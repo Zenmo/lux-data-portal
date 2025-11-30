@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7-labs
 # for COPY --exclude support
-FROM gradle:8.10.0-jdk21 AS gradle
+FROM gradle:9.2.1-jdk21 AS gradle
 # TODO: copies too much, breaks caching
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src

@@ -15,8 +15,6 @@ import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
 import {useNavigate} from "react-router-dom"
 import {Content} from "../components/Content"
 import {IndexSurveySelectAction} from "./index-survey-select-action"
-import {useOnce} from "../hooks/use-once"
-import {IndexSurveyClient} from "joshi"
 
 export const Surveys: FunctionComponent = () => {
     const {

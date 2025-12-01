@@ -17,7 +17,8 @@ data class IndexSurvey(
     val companyName: String,
     val projectName: String,
     val creationDate: Instant,
-    val includeInSimulation: Boolean
+    val includeInSimulation: Boolean,
+    val failedValidationMessages: List<String> = emptyList(),
 ) {
     public fun withIncludeInSimulation(includeInSimulation: Boolean): IndexSurvey {
         return this.copy(includeInSimulation = includeInSimulation)

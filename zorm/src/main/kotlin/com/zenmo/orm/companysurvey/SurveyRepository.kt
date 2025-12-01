@@ -1,5 +1,8 @@
 package com.zenmo.orm.companysurvey
 
+import com.zenmo.joshi.OrderDirection
+import com.zenmo.joshi.SurveyOrder
+import com.zenmo.joshi.SurveyOrderField
 import com.zenmo.orm.blob.BlobPurpose
 import com.zenmo.orm.companysurvey.table.*
 import com.zenmo.orm.companysurvey.table.GridConnectionTable.addressId
@@ -9,6 +12,7 @@ import com.zenmo.zummon.companysurvey.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -22,24 +26,102 @@ fun userIsAllowedCondition(userId: UUID): Op<Boolean>{
     )
 }
 
+private fun projectFilter(project: String): Op<Boolean> {
+    return CompanySurveyTable.projectId eq anyFrom (
+        ProjectTable.select(ProjectTable.id)
+            .where(ProjectTable.name.lowerCase() eq project.lowercase())
+    )
+}
+
+private fun projectNamesFilter(projects: List<String>): Op<Boolean> {
+    return CompanySurveyTable.projectId eq anyFrom (
+        ProjectTable.select(ProjectTable.id)
+            .where(ProjectTable.name.lowerCase() inList projects.map { it.lowercase() })
+    )
+}
+
+private fun projectSearchFilter(projectSearch: String): Op<Boolean> {
+    return CompanySurveyTable.projectId eq anyFrom (
+        ProjectTable.select(ProjectTable.id)
+            .where {
+                ProjectTable.name.lowerCase()
+                    .like("%${projectSearch.lowercase()}%")
+            }
+    )
+}
+
+private fun companySearchFilter(companySearch: String): Op<Boolean> {
+    return CompanySurveyTable.companyName.lowerCase()
+        .like("%${companySearch.lowercase()}%")
+}
+
+fun OrderDirection.toExposed(): SortOrder = when (this) {
+    OrderDirection.ASC -> SortOrder.ASC
+    OrderDirection.DESC -> SortOrder.DESC
+}
+
+fun SurveyOrderField.toExposed() = when (this) {
+    SurveyOrderField.COMPANY_NAME -> CompanySurveyTable.companyName
+    SurveyOrderField.CREATION_DATE -> CompanySurveyTable.created
+    SurveyOrderField.PROJECT_NAME -> ProjectTable.name
+    SurveyOrderField.INCLUDE_IN_SIMULATION -> CompanySurveyTable.includeInSimulation
+}
+
+data class SurveyQueryResult(
+    val surveys: List<Survey>,
+    /** Total number of matches without taking into account limit or offset */
+    val totalCount: Int,
+)
+
+data class SurveyQueryParameters(
+    val filters: SurveyFilters,
+    val limit: Int?,
+    val offset: Int?,
+    val order: SurveyOrder?,
+) {
+    fun hasLimitOrOffset(): Boolean {
+        return limit != null || offset != null
+    }
+}
+
+data class SurveyFilters(
+    val userId: UUID? = null,
+    val projectNames: List<String>? = null,
+    val projectSearch: String? = null,
+    val companySearch: String? = null,
+    val includeInSimulation: Boolean? = null,
+) {
+    fun toExpression(): Op<Boolean> {
+        val filters = mutableListOf<Op<Boolean>>(Op.TRUE)
+
+        if (userId != null) {
+            filters.add(userIsAllowedCondition(userId))
+        }
+
+        if (includeInSimulation != null) {
+            filters.add(CompanySurveyTable.includeInSimulation eq includeInSimulation)
+        }
+
+        if (projectNames != null) {
+            filters.add(projectNamesFilter(projectNames))
+        }
+
+        if (projectSearch != null) {
+            filters.add(projectSearchFilter(projectSearch))
+        }
+
+        if (companySearch != null) {
+            filters.add(companySearchFilter(companySearch))
+        }
+
+        return filters.compoundAnd()
+    }
+}
+
 class SurveyRepository(
     private val db: Database,
 ) {
     private val timeSeriesRepository: TimeSeriesRepository = TimeSeriesRepository(db)
-
-    private fun projectFilter(project: String): Op<Boolean> {
-        return CompanySurveyTable.projectId eq anyFrom (
-            ProjectTable.select(ProjectTable.id)
-                .where(ProjectTable.name.lowerCase() eq project.lowercase())
-        )
-    }
-
-    private fun projectNamesFilter(projects: List<String>): Op<Boolean> {
-        return CompanySurveyTable.projectId eq anyFrom (
-            ProjectTable.select(ProjectTable.id)
-                .where(ProjectTable.name.lowerCase() inList projects.map { it.lowercase() })
-        )
-    }
 
     fun getHessenpoortSurveys(): List<Survey> {
         return getSurveysByProject("Hessenpoort")
@@ -134,36 +216,91 @@ class SurveyRepository(
         return getSurveys(projectFilter(project))
     }
 
-    fun getSurveys(project: String? = null, userId: UUID, includeInSimulation: Boolean? = null, projectNames: List<String>? = null): List<Survey> {
-        val filters = mutableListOf(
-            userIsAllowedCondition(userId)
-        )
+    fun getSurveysWithTotalCount(parameters: SurveyQueryParameters): SurveyQueryResult {
+        val surveys = getSurveys(parameters)
 
-        if (project != null) {
-            filters.add(projectFilter(project))
+        val totalCount = if (parameters.hasLimitOrOffset()) {
+            getTotalCount(parameters.filters)
+        } else {
+            surveys.size
         }
 
-        if (includeInSimulation != null) {
-            filters.add(CompanySurveyTable.includeInSimulation eq includeInSimulation)
-        }
-
-        if (projectNames != null) {
-            filters.add(projectNamesFilter(projectNames))
-        }
-
-        return getSurveys(filters.compoundAnd())
+        return SurveyQueryResult(surveys, totalCount)
     }
 
-    fun getSurveys(filter: Op<Boolean> = Op.TRUE): List<Survey> {
+    fun getSurveys(params: SurveyQueryParameters): List<Survey> {
+        val (filter, limit, offset, order) = params
+
+        return getSurveys(filter.toExpression(), limit, offset, order)
+    }
+
+    fun getSurveys(
+        project: String? = null,
+        userId: UUID,
+        includeInSimulation: Boolean? = null,
+        projectNames: List<String>? = null,
+    ): List<Survey> {
+        val resolvedProjectNames = if (project != null) {
+            listOf(project)
+        } else projectNames
+
+        val filters = SurveyFilters(
+            userId = userId,
+            projectNames = resolvedProjectNames,
+            includeInSimulation = includeInSimulation
+        )
+
+        return getSurveys(filters.toExpression())
+    }
+
+    private val baseQuery = CompanySurveyTable
+        .join(ProjectTable, JoinType.INNER)
+        .join(UserTable, JoinType.LEFT, CompanySurveyTable.createdById, UserTable.id)
+
+    private fun getTotalCount(
+        filters: SurveyFilters,
+    ): Int {
+        val count = CompanySurveyTable.id.count()
+
+        return baseQuery
+            .select(count)
+            .where { filters.toExpression() }
+            .map { it[count] }
+            .single()
+            .toInt()
+    }
+
+    fun getSurveys(
+        filter: Op<Boolean> = Op.TRUE,
+        limit: Int? = null,
+        offset: Int? = null,
+        order: SurveyOrder? = null,
+    ): List<Survey> {
         return transaction(db) {
-            val surveysWithoutAddresses = CompanySurveyTable
-                .join(ProjectTable, JoinType.INNER)
-                .join(UserTable, JoinType.LEFT, CompanySurveyTable.createdById, UserTable.id)
+            var surveyQuery = baseQuery
                 .selectAll()
                 .where {
                     filter
                 }
-                .map { hydrateSurvey(it) }
+
+            if (limit != null) {
+                surveyQuery = surveyQuery.limit(limit)
+            }
+
+            if (offset != null) {
+                surveyQuery = surveyQuery.offset(offset.toLong())
+            }
+
+            if (order != null) {
+                surveyQuery = surveyQuery.orderBy(
+                    order.field.toExposed(),
+                    order.direction.toExposed(),
+                )
+            }
+
+            val surveysWithoutAddresses = surveyQuery.map {
+                hydrateSurvey(it)
+            }
 
             val addressRows = AddressTable.selectAll()
                 .where {

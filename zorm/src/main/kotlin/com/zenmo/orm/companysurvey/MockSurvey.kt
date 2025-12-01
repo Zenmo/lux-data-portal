@@ -3,10 +3,35 @@ package com.zenmo.orm.companysurvey
 import com.zenmo.zummon.companysurvey.*
 import kotlinx.datetime.DateTimeUnit
 import java.util.*
+import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 val mockSurvey = createMockSurvey()
 
-fun createMockSurvey(projectName: String = "Project") = Survey(
+fun createHourlyValues(duration: Duration) = sequence {
+    while (true) {
+        yield(1.2f)
+        yield(2.2f)
+        yield(3.2f)
+        yield(4.2f)
+    }
+}.take((duration / 1.hours).roundToInt()).toList().toFloatArray()
+
+fun createQuarterHourlyValues(duration: Duration) = sequence {
+    while (true) {
+        yield(1.2f)
+        yield(2.2f)
+        yield(3.2f)
+        yield(4.2f)
+    }
+}.take((duration / 15.minutes).roundToInt()).toList().toFloatArray()
+
+fun createMockSurvey(
+    projectName: String = "Project",
+    timeSeriesDuration: Duration = 4.hours,
+) = Survey(
     companyName = "Zenmo",
     zenmoProject = projectName,
     personName = "John Doe",
@@ -67,17 +92,17 @@ fun createMockSurvey(projectName: String = "Project") = Survey(
                         quarterHourlyDelivery_kWh = TimeSeries(
                             type = TimeSeriesType.ELECTRICITY_DELIVERY,
                             start = kotlinx.datetime.Instant.parse("2022-01-01T00:00:00+01"),
-                            values = floatArrayOf(1.2f, 2.2f, 3.2f, 4.2f),
+                            values = createQuarterHourlyValues(timeSeriesDuration),
                         ),
                         quarterHourlyFeedIn_kWh = TimeSeries(
                             type = TimeSeriesType.ELECTRICITY_FEED_IN,
                             start = kotlinx.datetime.Instant.parse("2022-01-01T00:00:00+01"),
-                            values = floatArrayOf(1.2f, 2.2f, 3.2f, 4.2f),
+                            values = createQuarterHourlyValues(timeSeriesDuration),
                         ),
                         quarterHourlyProduction_kWh = TimeSeries(
                             type = TimeSeriesType.ELECTRICITY_PRODUCTION,
                             start = kotlinx.datetime.Instant.parse("2022-01-01T00:00:00+01"),
-                            values = floatArrayOf(1.2f, 2.2f, 3.2f, 4.2f),
+                            values = createQuarterHourlyValues(timeSeriesDuration),
                         ),
                         annualElectricityProduction_kWh = 3000,
                     ),
@@ -111,7 +136,7 @@ fun createMockSurvey(projectName: String = "Project") = Survey(
                             type = TimeSeriesType.GAS_DELIVERY,
                             start = kotlinx.datetime.Instant.parse("2022-01-01T00:00:00+01"),
                             timeStep = DateTimeUnit.HOUR,
-                            values = floatArrayOf(1.2f, 2.2f, 3.2f, 4.2f),
+                            values = createHourlyValues(timeSeriesDuration),
                         )
                     ),
                     heat = Heat(

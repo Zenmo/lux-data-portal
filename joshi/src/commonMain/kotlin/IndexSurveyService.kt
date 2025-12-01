@@ -4,5 +4,5 @@ import kotlinx.rpc.annotations.Rpc
 
 @Rpc
 interface IndexSurveyService {
-    suspend fun fetchIndexSurveys(): IndexSurveyList
+    suspend fun fetchIndexSurveys(request: FetchIndexSurveysRequest): FetchIndexSurveysResponse
 }

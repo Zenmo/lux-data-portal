@@ -111,6 +111,7 @@ jobs:
                     tags: ghcr.io/zenmo/zero-frontend:${{ needs.variables.outputs.VERSION_TAG }}
                     build-args: |
                         VITE_ZTOR_URL=https://${{ vars.ZTOR_HOSTNAME || needs.variables.outputs.ZTOR_HOSTNAME }}
+                        VITE_ZTOR_RPC_URL=wss://${{ vars.ZTOR_HOSTNAME || needs.variables.outputs.ZTOR_HOSTNAME }}/rpc
                         BROWSER_CACHE_KEY=${{ steps.browser-cache-key.outputs.stdout }}
                     cache-from: type=gha
                     cache-to: type=gha,mode=max

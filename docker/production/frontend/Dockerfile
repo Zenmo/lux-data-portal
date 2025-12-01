@@ -9,6 +9,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle joshi:jsBrowser
 
 FROM node:22 AS node
 ARG VITE_ZTOR_URL
+ARG VITE_ZTOR_RPC_URL
 ARG BROWSER_CACHE_KEY
 
 RUN mkdir -p /app/frontend

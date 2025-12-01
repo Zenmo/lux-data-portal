@@ -6,6 +6,7 @@ import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.createSchema
 import com.zenmo.orm.echoSchemaSql
 import com.zenmo.ztor.plugins.*
+import com.zenmo.ztor.rpc.configureRpc
 import com.zenmo.zummon.companysurvey.surveysToJson
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -75,4 +76,5 @@ fun Application.module() {
     configureStatusPages()
     configureUpload(db)
     configureExcel(db)
+    configureRpc(db)
 }

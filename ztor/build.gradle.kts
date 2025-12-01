@@ -90,6 +90,21 @@ dependencies {
 }
 
 tasks.withType<Test> {
+    debugOptions {
+        /**
+         * If debugging is enabled, Gradle will wait for you
+         * to attach a debugger before running the tests.
+         *
+         * Command to run the ztor-test docker service
+         * with a published debug port:
+         *
+         * docker compose run --publish 127.0.0.1:5005:5005 --rm ztor-test
+         */
+        //enabled = true
+        host = "*"
+        suspend = true
+    }
+
     this.testLogging {
         this.showStandardStreams = true
     }

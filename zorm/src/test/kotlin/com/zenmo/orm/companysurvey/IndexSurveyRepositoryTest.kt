@@ -3,13 +3,10 @@ package com.zenmo.orm.companysurvey
 import com.zenmo.orm.cleanDb
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
-import com.zenmo.zummon.User
-import com.zenmo.zummon.companysurvey.Project
 import java.util.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
 

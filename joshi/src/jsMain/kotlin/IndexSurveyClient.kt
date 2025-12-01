@@ -12,9 +12,9 @@ import kotlin.js.Promise
 class IndexSurveyClient(
     val wrappedService: IndexSurveyService = rpcClient.withService(IndexSurveyService::class)
 ) {
-    fun fetchIndexSurveys(): Promise<IndexSurveyList> {
+    fun fetchIndexSurveys(request: FetchIndexSurveysRequest): Promise<FetchIndexSurveysResponse> {
         return GlobalScope.promise {
-            wrappedService.fetchIndexSurveys()
+            wrappedService.fetchIndexSurveys(request)
         }
     }
 }

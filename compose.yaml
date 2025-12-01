@@ -106,7 +106,9 @@ services:
             service: ztor-gradle-with-db
         volumes:
             - gradle-test-cache:/home/gradle/.gradle
-        command: ztor:test --no-daemon
+        command:
+            - ztor:test
+            - --no-daemon
         environment:
             POSTGRES_URL: jdbc:postgresql://postgres:5432/test
 

@@ -9,6 +9,7 @@ import {SurveyIncludeInSimulationCheckbox} from "./survey-include-in-simulation-
 import {IndexSurveySelectAction} from "./index-survey-select-action"
 import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 import {useNavigate} from "react-router-dom"
+import {ValidationIndicator} from "./validation-indicator"
 
 export const SurveyTable: FunctionComponent = () => {
     const {
@@ -63,6 +64,12 @@ export const SurveyTable: FunctionComponent = () => {
         >
             <Column field="companyName" header="Bedrijf" sortable
                     filter filterPlaceholder="Search by company" showFilterMenu={false}
+                    body={(survey: IndexSurvey) => (
+                        <div css={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                            {survey.companyName}
+                            <ValidationIndicator messages={survey.failedValidationMessages.asJsReadonlyArrayView()} />
+                        </div>
+                    )}
             />
             <Column field="projectName" header="Project" sortable
                     filter filterPlaceholder="Search by project" showFilterMenu={false}

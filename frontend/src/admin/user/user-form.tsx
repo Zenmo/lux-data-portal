@@ -5,11 +5,11 @@ import {InputText} from "primereact/inputtext"
 import {Button} from "primereact/button"
 import {Project, projectsFromJson, User} from "zero-zummon"
 import {redirectToLogin} from "./use-users"
-import {ProjectsDropdown} from "./projects-dropdown"
+import {ProjectsDropdown} from "../project/projects-dropdown"
 import {UserProjectsList} from "./user-projects-list"
 import {Toast} from "primereact/toast"
-import {Content} from "../components/Content"
-import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
+import {Content} from "../../components/Content"
+import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 
 export const UserForm: FunctionComponent = () => {
     const {userId} = useParams<{ userId: string }>()

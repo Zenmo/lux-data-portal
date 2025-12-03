@@ -6,14 +6,14 @@ import {PrimeReactProvider} from "primereact/api"
 import {IndexSurvey} from "joshi"
 import "primereact/resources/themes/lara-light-cyan/theme.css"
 import "primeicons/primeicons.css"
-import {deleteSurvey} from "./delete-button"
-import {ZeroLayout} from "../components/zero-layout"
+import {deleteSurvey} from "../delete-button"
+import {ZeroLayout} from "../../components/zero-layout"
 
 import {AdminButtonRow} from "./admin-button-row"
 import {SurveyIncludeInSimulationCheckbox} from "./survey-include-in-simulation-checkbox"
-import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
+import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 import {useNavigate} from "react-router-dom"
-import {Content} from "../components/Content"
+import {Content} from "../../components/Content"
 import {IndexSurveySelectAction} from "./index-survey-select-action"
 
 export const Surveys: FunctionComponent = () => {

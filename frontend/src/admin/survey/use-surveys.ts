@@ -1,7 +1,8 @@
 import {useState} from "react"
-import {useOnce} from "../hooks/use-once"
+import {useOnce} from "../../hooks/use-once"
 import {IndexSurvey, indexSurveysFromJson} from "joshi"
-import {ZTOR_BASE_URL} from "../services/ztor-fetch"
+import {ZTOR_BASE_URL} from "../../services/ztor-fetch"
+import {redirectToLogin} from "../../user/redirect-to-login"
 
 type UseSurveyReturn = {
     loading: boolean,
@@ -49,6 +50,3 @@ export const useSurveys = (): UseSurveyReturn => {
     }
 }
 
-export const redirectToLogin = () => {
-    window.location.href = import.meta.env.VITE_ZTOR_URL + "/login?redirectUrl=" + encodeURIComponent(window.location.href)
-}

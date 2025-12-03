@@ -1,4 +1,4 @@
-import {redirectToLogin} from "../admin/use-surveys"
+import {redirectToLogin} from "../user/redirect-to-login"
 
 export const ZTOR_BASE_URL = import.meta.env.VITE_ZTOR_URL
 // default way to communicate with the backend

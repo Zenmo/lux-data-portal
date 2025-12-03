@@ -220,7 +220,9 @@ class SurveyRepository(
         val surveys = getSurveys(parameters)
 
         val totalCount = if (parameters.hasLimitOrOffset()) {
-            getTotalCount(parameters.filters)
+            transaction(db) {
+                getTotalCount(parameters.filters)
+            }
         } else {
             surveys.size
         }

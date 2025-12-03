@@ -7,12 +7,12 @@ import {Project} from "zero-zummon"
 
 import "primereact/resources/themes/lara-light-cyan/theme.css"
 import "primeicons/primeicons.css"
-import {deleteSurvey} from "./delete-button"
+import {deleteSurvey} from "../delete-button"
 import {Button} from "primereact/button"
 import {useNavigate} from "react-router-dom"
-import {Content} from "../components/Content"
-import {ZeroLayout} from "../components/zero-layout"
-import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
+import {Content} from "../../components/Content"
+import {ZeroLayout} from "../../components/zero-layout"
+import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 
 export const Projects: FunctionComponent = () => {
     const {loadingProjects, projects, changeProject, removeProject} = useProjects()

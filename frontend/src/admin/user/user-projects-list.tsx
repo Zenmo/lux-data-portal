@@ -2,7 +2,7 @@ import React, {FunctionComponent} from "react"
 import {Project} from "zero-zummon"
 import {DataTable} from "primereact/datatable"
 import {Column} from "primereact/column"
-import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
+import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 import {useNavigate} from "react-router-dom"
 
 type UserProjectsListProps = {

@@ -30,7 +30,6 @@ class IndexSurveyServiceImpl(
                 order = request.order,
             )
         )
-
         val indexSurveys = queryResult.surveys.map(::validateSurvey)
 
         return FetchIndexSurveysResponse(indexSurveys, queryResult.totalCount)

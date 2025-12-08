@@ -1,7 +1,7 @@
-import {FunctionComponent} from "react"
+import {FunctionComponent, useMemo} from "react"
 import {useSurveyPagination} from "./use-survey-pagination"
-import {DataTable, DataTableFilterMetaData, DataTableStateEvent} from "primereact/datatable"
-import {IndexSurvey, SurveyOrder, SurveyOrderField, OrderDirection} from "joshi"
+import {DataTable, DataTableFilterMeta, DataTableFilterMetaData, DataTableStateEvent} from "primereact/datatable"
+import {IndexSurvey, SurveyOrder, SurveyOrderField, OrderDirection, FetchIndexSurveysRequest} from "joshi"
 import {Column} from "primereact/column"
 import {Nullable} from "primereact/ts-helpers"
 import {SortOrder} from "primereact/api"
@@ -18,7 +18,6 @@ export const SurveyTable: FunctionComponent = () => {
     const navigate = useNavigate()
 
     const processEvent = (event: DataTableStateEvent) => {
-        console.log(event)
         let surveyOrder: Nullable<SurveyOrder> = null
         if (event.sortField && event.sortOrder == -1 || event.sortOrder == 1) {
             surveyOrder = new SurveyOrder(
@@ -59,6 +58,7 @@ export const SurveyTable: FunctionComponent = () => {
             sortOrder={request.order?.direction.int as SortOrder}
             onSort={processEvent}
             onFilter={processEvent}
+            filters={requestToFilters(request)}
             className={"rounded rounded-4"}
         >
             <Column field="companyName" header="Bedrijf" sortable
@@ -119,4 +119,17 @@ const formatDatetime = (date: string) => {
         dateTime.getDate().toString().padStart(2, "0") +
         " " + dateTime.getHours().toString().padStart(2, "0") +
         ":" + dateTime.getMinutes().toString().padStart(2, "0")
+}
+
+function requestToFilters(request: FetchIndexSurveysRequest): DataTableFilterMeta {
+    return {
+        companyName: {
+            value: request.companySearch ?? "",
+            matchMode: "contains",
+        },
+        projectName: {
+            value: request.projectSearch ?? "",
+            matchMode: "contains",
+        },
+    }
 }

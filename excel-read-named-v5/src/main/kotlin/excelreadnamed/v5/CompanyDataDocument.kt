@@ -191,10 +191,8 @@ data class CompanyDataDocument(
                                             "numElectricTrucks"
                                         )
                                             .toInt(),
-                                        numChargePoints =
-                                        0,
-                                        powerPerChargePointKw =
-                                        0f,
+                                        numChargePoints = null,
+                                        powerPerChargePointKw = null,
                                         annualTravelDistancePerTruckKm =
                                         getNumericField(
                                             "annualTravelDistancePerTruckKm"
@@ -215,10 +213,8 @@ data class CompanyDataDocument(
                                             "numElectricVans"
                                         )
                                             .toInt(),
-                                        numChargePoints =
-                                        0,
-                                        powerPerChargePointKw =
-                                        0f,
+                                        numChargePoints = null,
+                                        powerPerChargePointKw = null,
                                         annualTravelDistancePerVanKm =
                                         getNumericField(
                                             "annualTravelDistancePerVanKm"

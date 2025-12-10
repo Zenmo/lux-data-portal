@@ -25,14 +25,14 @@ class IndexSurveyRepository(
                     userIsAllowedCondition(userId.toJavaUuid())
                 }
                 .map {
-                IndexSurvey(
-                   id= it[CompanySurveyTable.id].toKotlinUuid(),
-                    companyName = it[CompanySurveyTable.companyName],
-                    projectName =  it[ProjectTable.name],
-                    creationDate = it[CompanySurveyTable.created],
-                    includeInSimulation = it[CompanySurveyTable.includeInSimulation]
-                )
-            }
+                    IndexSurvey(
+                        id = it[CompanySurveyTable.id].toKotlinUuid(),
+                        companyName = it[CompanySurveyTable.companyName],
+                        projectName = it[ProjectTable.name],
+                        creationDate = it[CompanySurveyTable.created],
+                        includeInSimulation = it[CompanySurveyTable.includeInSimulation]
+                    )
+                }
         }
     }
 }

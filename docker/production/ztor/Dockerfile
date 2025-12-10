@@ -1,6 +1,6 @@
 ## For production
 
-FROM gradle:8.10.0-jdk21 AS build
+FROM gradle:9.2.1-jdk21 AS build
 # TODO: gradle projects should be put in a separate directory
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src

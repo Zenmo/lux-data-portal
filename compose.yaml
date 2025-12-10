@@ -22,7 +22,7 @@ services:
             - 127.0.0.1:80:80
 
     gradle-base:
-        image: gradle:8.10.0-jdk21
+        image: gradle:9.2.1-jdk21
         working_dir: /home/gradle/zero
         user: gradle
         volumes:
@@ -33,7 +33,7 @@ services:
     gradle-base-17:
         extends:
             service: gradle-base
-        image: gradle:8.10.0-jdk17
+        image: gradle:9.2.1-jdk17
 
     zorm-test:
         extends:
@@ -106,7 +106,9 @@ services:
             service: ztor-gradle-with-db
         volumes:
             - gradle-test-cache:/home/gradle/.gradle
-        command: ztor:test --no-daemon
+        command:
+            - ztor:test
+            - --no-daemon
         environment:
             POSTGRES_URL: jdbc:postgresql://postgres:5432/test
 

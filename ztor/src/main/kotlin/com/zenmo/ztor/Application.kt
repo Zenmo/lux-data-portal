@@ -6,13 +6,12 @@ import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.createSchema
 import com.zenmo.orm.echoSchemaSql
 import com.zenmo.ztor.plugins.*
-import com.zenmo.zummon.companysurvey.surveysFromJson
+import com.zenmo.ztor.rpc.configureRpc
 import com.zenmo.zummon.companysurvey.surveysToJson
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlin.system.exitProcess
-import kotlin.uuid.Uuid
 
 fun main(args: Array<String>) {
     if (args.count() == 1) {
@@ -69,10 +68,13 @@ fun Application.module() {
     configureMonitoring()
     configureSerialization()
     configureAuthentication()
-    val db = configureDatabases()
+    val db = connectToPostgres()
+    configureUserEndpoints(db)
     configureSurveys(db)
+    configureProjects(db)
     configureRouting()
     configureStatusPages()
     configureUpload(db)
     configureExcel(db)
+    configureRpc(db)
 }

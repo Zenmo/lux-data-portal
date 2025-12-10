@@ -1,6 +1,6 @@
 import {FormEvent, useRef, useState} from "react"
-import {ZTOR_BASE_URL} from "../services/ztor-fetch"
-import {buildDeeplinkUrl} from "../components/company-survey-v2/deeplink"
+import {ZTOR_BASE_URL} from "../../services/ztor-fetch"
+import {buildDeeplinkUrl} from "../../components/company-survey-v2/deeplink"
 import {OverlayPanel} from "primereact/overlaypanel"
 import {Button} from "primereact/button"
 import {IndexSurvey} from "joshi"

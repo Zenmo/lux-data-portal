@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {useOnce} from "../hooks/use-once";
+import {useOnce} from "../../hooks/use-once";
 import {User, usersFromJson } from "zero-zummon"
 
 type UseUserReturn = {

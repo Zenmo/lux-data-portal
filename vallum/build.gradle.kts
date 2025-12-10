@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.net.URI
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.2.2"
     `maven-publish`
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -59,7 +59,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = URI("https://maven.pkg.github.com/zenmo/zero-web")
+            url = URI("https://maven.pkg.github.com/zenmo/lux-data-portal")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")

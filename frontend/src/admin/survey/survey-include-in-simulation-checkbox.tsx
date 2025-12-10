@@ -1,5 +1,5 @@
 import {FunctionComponent, useState} from "react"
-import {ztorFetch} from "../services/ztor-fetch"
+import {ztorFetch} from "../../services/ztor-fetch"
 import {BooleanCheckbox} from "./boolean-checkbox"
 
 export const SurveyIncludeInSimulationCheckbox: FunctionComponent<{

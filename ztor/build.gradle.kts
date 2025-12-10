@@ -1,11 +1,10 @@
 
-val ktor_version = "3.0.3"
-
 plugins {
     kotlin("jvm")
 
-    id("io.ktor.plugin") version "3.0.3"
+    id("io.ktor.plugin") version libs.versions.ktor.get()
     kotlin("plugin.serialization")
+    id("org.jetbrains.kotlinx.rpc.plugin")
 }
 
 group = "com.zenmo"
@@ -44,29 +43,33 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:${libs.versions.exposed.get()}")
 
     implementation("ch.qos.logback:logback-classic:1.4.12")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-auth:$ktor_version")
-    implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-html-builder:$ktor_version")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-auth:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-call-logging-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-core-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-cors-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-host-common-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-html-builder:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-netty-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-status-pages-jvm:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
     // kinda need this to run in Azure Container Apps
     // https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview#http-headers
-    implementation("io.ktor:ktor-server-forwarded-header:$ktor_version")
+    implementation("io.ktor:ktor-server-forwarded-header:${libs.versions.ktor.get()}")
 
     // I experience performance issues with Ktor's multipart handling.
     implementation(platform("org.http4k:http4k-bom:5.30.0.0"))
     implementation("org.http4k:http4k-multipart")
 
     // to call into Keycloak
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-client-core:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-client-cio:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-client-content-negotiation:${libs.versions.ktor.get()}")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-rpc-krpc-server:${libs.versions.kotlinx.rpc.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-rpc-krpc-ktor-server:${libs.versions.kotlinx.rpc.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-rpc-krpc-serialization-json:${libs.versions.kotlinx.rpc.get()}")
 
     // to hash deeplink secrets
     implementation("at.favre.lib:bcrypt:0.10.2")
@@ -81,12 +84,27 @@ dependencies {
     // minio for excel uploads storage
     implementation("io.minio:minio:8.5.17")
 
-    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:${libs.versions.ktor.get()}")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.20")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
 tasks.withType<Test> {
+    debugOptions {
+        /**
+         * If debugging is enabled, Gradle will wait for you
+         * to attach a debugger before running the tests.
+         *
+         * Command to run the ztor-test docker service
+         * with a published debug port:
+         *
+         * docker compose run --publish 127.0.0.1:5005:5005 --rm ztor-test
+         */
+        //enabled = true
+        host = "*"
+        suspend = true
+    }
+
     this.testLogging {
         this.showStandardStreams = true
     }

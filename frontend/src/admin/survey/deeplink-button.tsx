@@ -2,7 +2,7 @@ import {Button} from "primereact/button";
 import {FunctionComponent, useRef, useState} from "react"
 import {noop} from "lodash";
 import {OverlayPanel} from "primereact/overlaypanel"
-import {buildDeeplinkUrl} from "../components/company-survey-v2/deeplink"
+import {buildDeeplinkUrl} from "../../components/company-survey-v2/deeplink"
 // @ts-ignore
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 

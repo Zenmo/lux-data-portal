@@ -5,8 +5,8 @@ import {InputText} from "primereact/inputtext"
 import {Button} from "primereact/button"
 import {Project} from "zero-zummon"
 import {redirectToLogin} from "./use-projects"
-import {Content} from "../components/Content"
-import {ActionButtonPair} from "../components/helpers/ActionButtonPair"
+import {Content} from "../../components/Content"
+import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 
 export const ProjectForm: FunctionComponent = () => {
     const {projectId} = useParams<{ projectId: string }>()

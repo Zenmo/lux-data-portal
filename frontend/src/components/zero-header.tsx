@@ -4,7 +4,7 @@ import {Sidebar} from "primereact/sidebar"
 import {css} from "@emotion/react"
 import {To, useNavigate} from "react-router-dom"
 import {useUser} from "../user/use-user"
-import {redirectToLogin} from "../admin/use-users"
+import {redirectToLogin} from "../admin/user/use-users"
 import {FaHouse} from "react-icons/fa6"
 import {FaBusinessTime, FaChartLine, FaFileContract, FaUsers} from "react-icons/fa"
 

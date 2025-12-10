@@ -1,6 +1,11 @@
 package companysurvey
 
 import com.zenmo.zummon.companysurvey.*
+import com.zenmo.zummon.companysurvey.validation.ElectricityValidator
+import com.zenmo.zummon.companysurvey.validation.GridConnectionValidator
+import com.zenmo.zummon.companysurvey.validation.Status
+import com.zenmo.zummon.companysurvey.validation.ValidationResult
+import com.zenmo.zummon.companysurvey.validation.translate
 import kotlinx.datetime.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -8,6 +13,7 @@ import kotlin.test.assertEquals
 class QuarterValidationTest {
     val electricityValidator = ElectricityValidator()
     val gridConnectionValidator = GridConnectionValidator()
+    val numValuesPerYear = 365 * 4 * 24
 
     @Test
     fun validateQuarterHourlyDeliveryNoProvide() {
@@ -25,12 +31,15 @@ class QuarterValidationTest {
             quarterHourlyDelivery_kWh = TimeSeries(
                 type = TimeSeriesType.ELECTRICITY_DELIVERY,
                 start = Instant.parse("2022-01-01T00:00:00Z"),
-                values = floatArrayOf(1.2f, 2.2f, 3.2f, 4.2f)
+                values = generateSequence { 1.0f }.take(numValuesPerYear).toList().toFloatArray()
             )
         )
         val result = electricityValidator.validateQuarterHourlyDeliveryData(electricity)
         assertEquals(Status.VALID, result.status)
-        assertEquals("Quarter-hourly delivery data has no gaps exceeding the limit", result.message)
+        assertEquals(
+            "Quarter-hourly electricity delivery has a year worth of datapoints with no gaps longer than 4 days",
+            result.message
+        )
     }
 
     @Test
@@ -39,12 +48,20 @@ class QuarterValidationTest {
             quarterHourlyDelivery_kWh = TimeSeries(
                 type = TimeSeriesType.ELECTRICITY_DELIVERY,
                 start = Instant.parse("2022-01-01T00:00:00Z"),
-                values = floatArrayOf(1.2f, 0.0f, 0.0f, 2.2f, 0.0f, 3.2f, 4.2f) // Only 2 nulls in a row
+                values = sequence {
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                    // A small gap which should pass validation
+                    yieldAll(generateSequence { 0.0f }.take(10))
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                }.toList().toFloatArray()
             )
         )
         val result = electricityValidator.validateQuarterHourlyDeliveryData(electricity)
         assertEquals(Status.VALID, result.status)
-        assertEquals("Quarter-hourly delivery data has no gaps exceeding the limit", result.message)
+        assertEquals(
+            "Quarter-hourly electricity delivery has a year worth of datapoints with no gaps longer than 4 days",
+            result.message
+        )
     }
 
     @Test
@@ -53,26 +70,39 @@ class QuarterValidationTest {
             quarterHourlyDelivery_kWh = TimeSeries(
                 type = TimeSeriesType.ELECTRICITY_DELIVERY,
                 start = Instant.parse("2022-01-01T00:00:00Z"),
-                values = FloatArray(385) { 0.0f } + floatArrayOf(1.2f, 2.2f) // 385 nulls, exceeding limit
+                values = sequence {
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                    // 385 nulls, exceeding limit
+                    yieldAll(generateSequence { 0.0f }.take(385))
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                }.toList().toFloatArray()
             )
         )
         val result = electricityValidator.validateQuarterHourlyDeliveryData(electricity)
         assertEquals(Status.INVALID, result.status)
-        assertEquals("Quarter-hourly delivery data has a gap of 96 hours, exceeding the allowed limit", result.message)
+        assertEquals("Quarter-hourly electricity delivery has missing or zeroed data for more than 4 days.", result.message)
     }
 
     @Test
     fun validateQuarterHourlyProductionDataInvalidGaps() {
         val electricity = Electricity(
-            quarterHourlyProduction_kWh = TimeSeries(
+            quarterHourlyDelivery_kWh = TimeSeries(
                 type = TimeSeriesType.ELECTRICITY_PRODUCTION,
                 start = Instant.parse("2022-01-01T00:00:00Z"),
-                values = FloatArray(385) { 0.0f } + floatArrayOf(1.2f, 2.2f)// 385 nulls, exceeding limit
+                values = sequence {
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                    // 385 nulls, exceeding limit
+                    yieldAll(generateSequence { 0.0f }.take(385))
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                }.toList().toFloatArray()
             )
         )
-        val result = electricityValidator.validateQuarterHourlyProductionData(electricity)
+        val result = electricityValidator.validateQuarterHourlyDeliveryData(electricity)
         assertEquals(Status.INVALID, result.status)
-        assertEquals("Quarter-hourly production data has a gap of 96 hours, exceeding the allowed limit", result.message)
+        assertEquals(
+            "Quarter-hourly electricity production has missing or zeroed data for more than 4 days.",
+            result.message
+        )
     }
 
     @Test
@@ -81,12 +111,17 @@ class QuarterValidationTest {
             quarterHourlyDelivery_kWh = TimeSeries(
                 type = TimeSeriesType.ELECTRICITY_DELIVERY,
                 start = Instant.parse("2022-01-01T00:00:00Z"),
-                values = FloatArray(384) { 0.0f } + floatArrayOf(1.2f, 2.2f) // 384 nulls, at the limit
+                values = sequence {
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                    // 384 nulls, at the limit
+                    yieldAll(generateSequence { 0.0f }.take(384))
+                    yieldAll(generateSequence { 1.0f }.take(numValuesPerYear / 2))
+                }.toList().toFloatArray()
             )
         )
         val result = electricityValidator.validateQuarterHourlyDeliveryData(electricity)
         assertEquals(Status.VALID, result.status)
-        assertEquals("Quarter-hourly delivery data has no gaps exceeding the limit", result.message)
+        assertEquals("Quarter-hourly electricity delivery has a year worth of datapoints with no gaps longer than 4 days", result.message)
     }
 
     @Test

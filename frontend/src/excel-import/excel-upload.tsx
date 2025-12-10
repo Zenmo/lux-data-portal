@@ -1,8 +1,8 @@
 import {FileUpload, FileUploadErrorEvent} from "primereact/fileupload"
-import {redirectToLogin} from "../admin/use-surveys"
 import {FunctionComponent, useState} from "react"
 import {Message} from "primereact/message"
 import {SurveyWithErrors} from "zero-zummon"
+import {redirectToLogin} from "../user/redirect-to-login"
 
 export const ExcelUpload: FunctionComponent<{
     setSurveyWithErrors: (swe: SurveyWithErrors) => void
@@ -24,7 +24,7 @@ export const ExcelUpload: FunctionComponent<{
                 url={`${import.meta.env.VITE_ZTOR_URL}/excel-upload`}
                 onSelect={resetErrorMessage}
                 onUpload={event => {
-                    setSurveyWithErrors(SurveyWithErrors.Companion.fromJson(event.xhr.responseText))
+                    setSurveyWithErrors(SurveyWithErrors.fromJson(event.xhr.responseText))
                 }}
                 withCredentials={true}
                 onError={(event: FileUploadErrorEvent) => {

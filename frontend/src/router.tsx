@@ -5,11 +5,11 @@ import {SurveyFromProject} from "./components/company-survey-v2/survey"
 import {ThankYou} from './components/thank-you'
 import {LoginWidget} from "./user/login";
 import {BedrijvenFormV1} from "./components/bedrijven-form-v1";
-import {Surveys} from "./admin/surveys";
-import {Projects} from "./admin/projects";
-import {Users} from "./admin/users";
-import {ProjectForm} from "./admin/project-form";
-import {UserForm} from "./admin/user-form";
+import {Surveys} from "./admin/survey/surveys";
+import {Projects} from "./admin/project/projects";
+import {Users} from "./admin/user/users";
+import {ProjectForm} from "./admin/project/project-form";
+import {UserForm} from "./admin/user/user-form";
 import {fetchSurveyById, SurveyById, SurveyByIdLoaderData} from "./components/company-survey-v2/survey-by-id"
 import {Intro} from "./components/intro"
 import {ExcelImport} from "./excel-import/excel-import"

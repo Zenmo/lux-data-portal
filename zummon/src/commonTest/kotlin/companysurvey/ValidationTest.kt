@@ -184,7 +184,6 @@ class ValidationTest {
         val results = gridConnectionValidator.validateTotalPowerChargePoints(invalidSurvey.getSingleGridConnection())
         assertEquals(results.last().status, Status.INVALID)
         assertContains(results.last().message, "exceeds allowed capacity")
-
     }
 }
 

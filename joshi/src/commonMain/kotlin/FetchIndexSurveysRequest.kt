@@ -10,7 +10,7 @@ data class FetchIndexSurveysRequest(
     val companySearch: String? = null,
     val limit: Int? = null,
     val offset: Int? = null,
-    val order: SurveyOrder? = null,
+    val order: SurveyOrder? = SurveyOrder(SurveyOrderField.CREATION_DATE, OrderDirection.DESC),
 ) {
     /** helpers for JavaScript */
     fun withProjectSearch(projectSearch: String?) = copy(projectSearch = projectSearch)

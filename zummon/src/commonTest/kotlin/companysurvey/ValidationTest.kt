@@ -185,5 +185,22 @@ class ValidationTest {
         assertEquals(results.last().status, Status.INVALID)
         assertContains(results.last().message, "exceeds allowed capacity")
     }
-}
 
+    @Test
+    fun validateInstalledPvPower() {
+        val validatePvInstalled = GridConnectionValidator()::validatePvInstalled
+
+        val gridConnection = mockSurvey.getSingleGridConnection()
+
+        assertEquals(Status.VALID, validatePvInstalled(gridConnection).status)
+
+        val tooBigPvGridConnection = gridConnection
+            .copy(
+                supply = gridConnection.supply.copy(
+                    pvInstalledKwp = 6000,
+                )
+            )
+
+        assertEquals(Status.INVALID, validatePvInstalled(tooBigPvGridConnection).status)
+    }
+}

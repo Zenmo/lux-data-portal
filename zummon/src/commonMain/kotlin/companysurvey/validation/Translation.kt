@@ -9,8 +9,6 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
             "quarterHourlyFeedInHighProductionBatteryPower" to "Time step in quarter-hourly feed-in (%d) is higher than the production and battery power (%d)",
             "incompatibleQuarterHourly" to "Quarter hourly feed-in is not the same length for Quarter hourly production",
             "incompatibleStartTimeQuarterHourly" to "Quarter hourly feed-in start time is not the same for Quarter hourly production",
-            "pvInstalledLow" to "PV installed power stays lower than 5000kW",
-            "pvInstalledHigh" to "PV installed power should not be larger dan 5000kW",
         ),
         "electricity" to mapOf(
             "kleinverbruikOrGrootverbruikNoDefined" to "Small or large consumption type is not defined",

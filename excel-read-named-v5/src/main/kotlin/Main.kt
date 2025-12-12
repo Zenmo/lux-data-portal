@@ -9,5 +9,5 @@ fun getSurveyObject(filename: String): Survey {
 
     println("Getting survey data for company: $companyName")
 
-    return document.getSurveyObject()
+    return document.createSurveyObject()
 }

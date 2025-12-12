@@ -7,13 +7,12 @@ import kotlinx.datetime.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.time.Duration.Companion.minutes
 
 class ReadExcelTest {
     @Test
     fun testReadExcel() {
         val companyDocumented = CompanyDataDocument.fromResource("Dealnr.bedrijfsnaam.data_aanpassingenZenmo27aug_filled_out.xlsx")
-        val survey = companyDocumented.getSurveyObject()
+        val survey = companyDocumented.createSurveyObject()
 
         assertEquals(false, survey.includeInSimulation)
 

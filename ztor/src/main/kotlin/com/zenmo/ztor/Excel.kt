@@ -14,7 +14,6 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import org.http4k.core.*
 import org.jetbrains.exposed.sql.Database
-import java.util.*
 import kotlin.time.measureTimedValue
 
 
@@ -82,7 +81,7 @@ fun Application.configureExcel(db: Database) {
 
             val (survey, excelReadDuration) = measureTimedValue {
                 try {
-                    document.getSurveyObject()
+                    document.createSurveyObject()
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, buildString {
                         appendLine("Unable to get fields from Excel file:")

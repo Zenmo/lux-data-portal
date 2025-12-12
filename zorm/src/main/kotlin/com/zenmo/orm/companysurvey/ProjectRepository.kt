@@ -92,12 +92,15 @@ class ProjectRepository(
             }.first()[ProjectTable.id]
         }
 
-    fun getProjectByEnergiekeRegioId(energiekeRegioId: Int): Project =
+    fun getProjectByEnergiekeRegioId(energiekeRegioId: Int): Project = try {
         transaction(db) {
             getProjects(
                 ProjectTable.energiekeRegioId eq energiekeRegioId
             )
         }.first()
+    } catch (e: NoSuchElementException) {
+        throw NoSuchElementException("No project with energiekeRegioId $energiekeRegioId")
+    }
 
     fun getBuurtCodesByProjectName(projectName: String): List<String> =
         transaction(db) {

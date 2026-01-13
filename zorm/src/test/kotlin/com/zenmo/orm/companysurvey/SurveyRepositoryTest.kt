@@ -195,6 +195,54 @@ class SurveyRepositoryTest {
         assertNull(storedSurveyWithNullDieselUsage.getSingleGridConnection().transport.agriculture.dieselUsageTimeSeries)
     }
 
+    @Test
+    fun testLastModifiedAtIsUpdatedOnSurveySave() {
+        val projectName = "Project_Update_Test"
+        val projectId = projectRepository.saveNewProject(projectName)
+        val initialProject = projectRepository.getProjectById(projectId)
+        val initialModified = initialProject.lastModifiedAt
+
+        Thread.sleep(10)
+
+        val survey = Survey(
+            companyName = "Zenmo",
+            zenmoProject = projectName,
+            personName = "John Doe",
+            email = "john@example.com",
+            addresses = emptyList(),
+        )
+        surveyRepository.save(survey)
+
+        val updatedProject = projectRepository.getProjectById(projectId)
+        assertTrue(updatedProject.lastModifiedAt > initialModified)
+    }
+
+    @Test
+    fun testLastModifiedAtIsUpdatedOnSurveyDelete() {
+        val projectName = "Project_Delete_Test"
+        val projectId = projectRepository.saveNewProject(projectName)
+        val survey = Survey(
+            companyName = "Zenmo",
+            zenmoProject = projectName,
+            personName = "John Doe",
+            email = "john@example.com",
+            addresses = emptyList(),
+        )
+        surveyRepository.save(survey)
+        val projectAfterSave = projectRepository.getProjectById(projectId)
+        val modifiedAfterSave = projectAfterSave.lastModifiedAt
+
+        Thread.sleep(10)
+
+        val userId = UUID.randomUUID()
+        userRepository.saveUser(userId, listOf(projectId))
+
+        surveyRepository.deleteSurveyById(survey.id, userId)
+
+        val projectAfterDelete = projectRepository.getProjectById(projectId)
+        assertTrue(projectAfterDelete.lastModifiedAt > modifiedAfterSave)
+    }
+
     private fun wipeSequence(survey: Survey)
     = survey.copy(
         addresses = survey.addresses.map {

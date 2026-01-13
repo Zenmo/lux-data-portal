@@ -5,14 +5,15 @@ import com.zenmo.orm.user.table.UserProjectTable
 import com.zenmo.orm.user.table.UserTable
 
 import com.zenmo.orm.companysurvey.table.ProjectTable
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
-import kotlin.uuid.ExperimentalUuidApi
 
 class ProjectRepository(
-    val db: Database
+    val db: Database,
+    val clock: Clock = Clock.System,
 ) {
     fun getProjects(filter: Op<Boolean> = Op.TRUE): List<Project> {
         return transaction(db) {
@@ -74,11 +75,12 @@ class ProjectRepository(
 
     private fun saveProject(project: Project): Project {
         return transaction(db) {
-            ProjectTable.upsertReturning() {
+            ProjectTable.upsertReturning {
                 it[id] = UUID.fromString(project.id.toString())
                 it[name] = project.name
                 it[energiekeRegioId] = project.energiekeRegioId
                 it[buurtCodes] = project.buurtCodes
+                it[lastModifiedAt] = clock.now()
             }.map {
                 hydrateProject(it)
             }.first()
@@ -89,6 +91,7 @@ class ProjectRepository(
         transaction(db) {
            ProjectTable.insertReturning(listOf(ProjectTable.id)) {
                 it[ProjectTable.name] = name
+                it[lastModifiedAt] = clock.now()
             }.first()[ProjectTable.id]
         }
 
@@ -114,7 +117,16 @@ class ProjectRepository(
             id = row[ProjectTable.id],
             name = row[ProjectTable.name],
             energiekeRegioId = row[ProjectTable.energiekeRegioId],
-            buurtCodes = row[ProjectTable.buurtCodes]
+            buurtCodes = row[ProjectTable.buurtCodes],
+            lastModifiedAt = row[ProjectTable.lastModifiedAt],
         )
+    }
+
+    fun updateProjectLastModifiedAt(projectId: UUID) {
+        ProjectTable.update(
+            where = { ProjectTable.id eq projectId }
+        ) {
+            it[lastModifiedAt] = clock.now()
+        }
     }
 }

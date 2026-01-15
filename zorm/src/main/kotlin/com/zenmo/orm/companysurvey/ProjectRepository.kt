@@ -43,15 +43,21 @@ class ProjectRepository(
         ).first()
     }
 
-    fun getProjectsByUserId(userId: UUID): List<Project> =
-        transaction(db) {
-             getProjects(
-                ( ProjectTable.id eq anyFrom(
-                    UserProjectTable.select(UserProjectTable.projectId)
-                        .where { UserProjectTable.userId eq userId }
-                ))
-            )
+    fun getProjectsByUserId(userId: UUID, projectName: String? = null): List<Project> {
+        var filter = ProjectTable.id eq anyFrom(
+            UserProjectTable.select(UserProjectTable.projectId)
+                .where { UserProjectTable.userId eq userId }
+        )
+
+        if (projectName != null) {
+            filter = filter and (ProjectTable.name eq projectName)
         }
+
+        return transaction(db) {
+            getProjects(filter)
+        }
+    }
+
 
     fun deleteProject(projectId: UUID): Boolean {
         return transaction(db) {

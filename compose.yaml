@@ -210,7 +210,7 @@ services:
     vallum-test:
         extends:
             service: gradle-base
-        command: vallum:test --tests com.zenmo.vallum.VallumTest
+        command: vallum:test --no-daemon --tests com.zenmo.vallum.VallumTest
         volumes:
             - gradle-vallum-test-cache:/home/gradle/.gradle
         depends_on:

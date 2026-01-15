@@ -190,18 +190,27 @@ class SurveyRepository(
     }
 
     fun setIncludeInSimulation(surveyId: UUID, userId: UUID, includeInSimulation: Boolean) {
-        val nUpdated = transaction(db) {
+        val projectIds = transaction(db) {
             CompanySurveyTable
-                .update ({
-                    (CompanySurveyTable.id eq surveyId)
-                        .and(userIsAllowedCondition(userId))
-                }) {
-                    it[CompanySurveyTable.includeInSimulation] = includeInSimulation
+                .updateReturning(
+                    returning = listOf(CompanySurveyTable.projectId),
+                    where = {
+                        (CompanySurveyTable.id eq surveyId)
+                            .and(userIsAllowedCondition(userId))
+                    },
+                    body = {
+                        it[CompanySurveyTable.includeInSimulation] = includeInSimulation
+                    }
+                )
+                .map {
+                    it[CompanySurveyTable.projectId]
                 }
         }
 
-        if (nUpdated == 0) {
-            throw Exception("Can't find survey $surveyId for user $userId")
+        when (projectIds.size) {
+            0 -> throw Exception("Can't find survey $surveyId for user $userId")
+            1 -> projectRepository.updateProjectLastModifiedAt(projectIds.single())
+            else -> throw Exception("Found multiple surveys with id $surveyId for user $userId")
         }
     }
 

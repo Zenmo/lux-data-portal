@@ -85,7 +85,7 @@ dependencies {
     implementation("io.minio:minio:8.5.17")
 
     testImplementation("io.ktor:ktor-server-test-host:${libs.versions.ktor.get()}")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.20")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.3.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 

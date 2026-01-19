@@ -90,7 +90,9 @@ class GridConnectionValidator : Validator<GridConnection> {
         return ValidationResult(Status.VALID, translate("gridConnection.quarterHourlyFeedInLowProductionBatteryPower"))
     }
 
-    // PV installed power should not be larger dan 5000kW
+    /**
+     * Sanity check: PV installed power should not be larger dan 5000kW
+     */
     fun validatePvInstalled(gridConnection: GridConnection): ValidationResult {
         if (gridConnection.supply.hasSupply == false) {
             return ValidationResult(

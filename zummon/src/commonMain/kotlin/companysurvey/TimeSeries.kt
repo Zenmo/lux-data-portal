@@ -116,7 +116,12 @@ data class TimeSeries (
 
     fun getLongestGapDuration(): Duration = timeStep.toDuration() * getNumberOfValuesOfLongestGap()
 
-    fun getPeak(): DataPoint = DataPoint(values.max(), unit, timeStep)
+    fun getPeak(): DataPoint {
+        val (index, value) = values.maxWithIndex()
+        val timeStamp = start.plus(index, timeStep, europeAmsterdam)
+
+        return DataPoint(timeStamp, value, unit, timeStep)
+    }
 
     /**
      * Convert the entire time series from day-, hour-, week- or monthbased to 15-minute based.
@@ -311,9 +316,9 @@ fun createEmptyTimeSeriesForYear(type: TimeSeriesType, year: Int) =
 
 /**
  * Represents a single point within the time series.
- * Improvement: add timestamp
  */
 data class DataPoint (
+    val timeStamp: Instant,
     val value: Float,
     val unit: TimeSeriesUnit,
     val timeStep: DateTimeUnit,
@@ -384,4 +389,16 @@ private class BackwardCompatilbeDateTimeUnitSerializer : KSerializer<DateTimeUni
     }
 
     override fun deserialize(decoder: Decoder): DateTimeUnit = isoStringToDateTimeUnit(decoder.decodeString())
+}
+
+private fun FloatArray.maxWithIndex(): Pair<Int, Float> {
+    var maxIndex = 0
+    var maxValue = this[0]
+    for (i in 1 until this.size) {
+        if (this[i] > maxValue) {
+            maxValue = this[i]
+            maxIndex = i
+        }
+    }
+    return maxIndex to maxValue
 }

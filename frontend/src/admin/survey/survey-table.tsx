@@ -19,7 +19,6 @@ export const SurveyTable: FunctionComponent = () => {
     const navigate = useNavigate()
 
     const processEvent = (event: DataTableStateEvent) => {
-        console.log(event)
         let surveyOrder: Nullable<SurveyOrder> = null
         if (event.sortField && event.sortOrder == -1 || event.sortOrder == 1) {
             surveyOrder = new SurveyOrder(

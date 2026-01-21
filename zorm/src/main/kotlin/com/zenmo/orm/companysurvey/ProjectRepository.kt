@@ -5,14 +5,15 @@ import com.zenmo.orm.user.table.UserProjectTable
 import com.zenmo.orm.user.table.UserTable
 
 import com.zenmo.orm.companysurvey.table.ProjectTable
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
-import kotlin.uuid.ExperimentalUuidApi
 
 class ProjectRepository(
-    val db: Database
+    val db: Database,
+    val clock: Clock = Clock.System,
 ) {
     fun getProjects(filter: Op<Boolean> = Op.TRUE): List<Project> {
         return transaction(db) {
@@ -42,15 +43,21 @@ class ProjectRepository(
         ).first()
     }
 
-    fun getProjectsByUserId(userId: UUID): List<Project> =
-        transaction(db) {
-             getProjects(
-                ( ProjectTable.id eq anyFrom(
-                    UserProjectTable.select(UserProjectTable.projectId)
-                        .where { UserProjectTable.userId eq userId }
-                ))
-            )
+    fun getProjectsByUserId(userId: UUID, projectName: String? = null): List<Project> {
+        var filter = ProjectTable.id eq anyFrom(
+            UserProjectTable.select(UserProjectTable.projectId)
+                .where { UserProjectTable.userId eq userId }
+        )
+
+        if (projectName != null) {
+            filter = filter and (ProjectTable.name eq projectName)
         }
+
+        return transaction(db) {
+            getProjects(filter)
+        }
+    }
+
 
     fun deleteProject(projectId: UUID): Boolean {
         return transaction(db) {
@@ -74,11 +81,12 @@ class ProjectRepository(
 
     private fun saveProject(project: Project): Project {
         return transaction(db) {
-            ProjectTable.upsertReturning() {
+            ProjectTable.upsertReturning {
                 it[id] = UUID.fromString(project.id.toString())
                 it[name] = project.name
                 it[energiekeRegioId] = project.energiekeRegioId
                 it[buurtCodes] = project.buurtCodes
+                it[lastModifiedAt] = clock.now()
             }.map {
                 hydrateProject(it)
             }.first()
@@ -89,15 +97,19 @@ class ProjectRepository(
         transaction(db) {
            ProjectTable.insertReturning(listOf(ProjectTable.id)) {
                 it[ProjectTable.name] = name
+                it[lastModifiedAt] = clock.now()
             }.first()[ProjectTable.id]
         }
 
-    fun getProjectByEnergiekeRegioId(energiekeRegioId: Int): Project =
+    fun getProjectByEnergiekeRegioId(energiekeRegioId: Int): Project = try {
         transaction(db) {
             getProjects(
                 ProjectTable.energiekeRegioId eq energiekeRegioId
             )
         }.first()
+    } catch (e: NoSuchElementException) {
+        throw NoSuchElementException("No project with energiekeRegioId $energiekeRegioId")
+    }
 
     fun getBuurtCodesByProjectName(projectName: String): List<String> =
         transaction(db) {
@@ -111,7 +123,16 @@ class ProjectRepository(
             id = row[ProjectTable.id],
             name = row[ProjectTable.name],
             energiekeRegioId = row[ProjectTable.energiekeRegioId],
-            buurtCodes = row[ProjectTable.buurtCodes]
+            buurtCodes = row[ProjectTable.buurtCodes],
+            lastModifiedAt = row[ProjectTable.lastModifiedAt],
         )
+    }
+
+    fun updateProjectLastModifiedAt(projectId: UUID) {
+        ProjectTable.update(
+            where = { ProjectTable.id eq projectId }
+        ) {
+            it[lastModifiedAt] = clock.now()
+        }
     }
 }

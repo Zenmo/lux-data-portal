@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from "react"
-import {FetchIndexSurveysRequest, IndexSurvey, IndexSurveyClient} from "joshi"
+import {FetchIndexSurveysRequest, IndexSurvey, IndexSurveyClient, SurveyOrder, SurveyOrderField, OrderDirection} from "joshi"
 import {deleteSurvey as deleteSurveyFn} from "../delete-button"
 
 type SurveyPaginationHook = {
@@ -17,7 +17,12 @@ export function useSurveyPagination(): SurveyPaginationHook {
 
     const [pending, setPending] = useState(true)
     const [request, setRequest] = useState<FetchIndexSurveysRequest>(
-        new FetchIndexSurveysRequest().withLimit(10).withOffset(0)
+        new FetchIndexSurveysRequest()
+            .withLimit(10)
+            .withOffset(0)
+            .withOrder(
+                new SurveyOrder(SurveyOrderField.CREATION_DATE, OrderDirection.DESC)
+            )
     )
     const [indexSurveys, setIndexSurveys] = useState<IndexSurvey[]>([])
     const [totalCount, setTotalCount] = useState<number | undefined>()

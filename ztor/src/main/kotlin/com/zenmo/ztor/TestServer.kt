@@ -25,6 +25,7 @@ fun Application.vallumMinimal() {
     configureAuthentication()
     val db = connectToPostgres()
     configureSurveys(db)
+    configureProjects(db)
     configureRouting()
     configureStatusPages()
 }

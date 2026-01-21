@@ -9,8 +9,6 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
             "quarterHourlyFeedInHighProductionBatteryPower" to "Time step in quarter-hourly feed-in (%d) is higher than the production and battery power (%d)",
             "incompatibleQuarterHourly" to "Quarter hourly feed-in is not the same length for Quarter hourly production",
             "incompatibleStartTimeQuarterHourly" to "Quarter hourly feed-in start time is not the same for Quarter hourly production",
-            "pvInstalledLow" to "PV installed power stays lower than 5000kW",
-            "pvInstalledHigh" to "PV installed power should not be larger dan 5000kW",
         ),
         "electricity" to mapOf(
             "kleinverbruikOrGrootverbruikNoDefined" to "Small or large consumption type is not defined",
@@ -117,8 +115,6 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
             "quarterHourlyFeedInHighProductionBatteryPower" to "De waarde in dit kwartier van de feed-in (%d) is hoger dan de productie en batterijcapaciteit samen (%d).",
             "incompatibleQuarterHourly" to "De kwartierwaarden van de feed-in en productie hebben niet dezelfde lengte.",
             "incompatibleStartTimeQuarterHourly" to "De starttijd van de kwartierwaarden voor feed-in komt niet overeen met die van de productie.",
-            "pvInstalledLow" to "PV geïnstalleerd vermogen blijft lager dan 5000 kW",
-            "pvInstalledHigh" to "PV geïnstalleerd vermogen mag niet groter zijn dan 5000 kW",
         ),
         "electricity" to mapOf(
             "kleinverbruikOrGrootverbruikNoDefined" to "Klein- of grootverbruikstype is niet gedefinieerd",

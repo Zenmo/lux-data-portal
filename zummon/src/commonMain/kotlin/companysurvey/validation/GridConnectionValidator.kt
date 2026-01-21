@@ -90,13 +90,36 @@ class GridConnectionValidator : Validator<GridConnection> {
         return ValidationResult(Status.VALID, translate("gridConnection.quarterHourlyFeedInLowProductionBatteryPower"))
     }
 
-    // PV installed power should not be larger dan 5000kW
+    /**
+     * Sanity check: PV installed power should not be larger dan 5000kW
+     */
     fun validatePvInstalled(gridConnection: GridConnection): ValidationResult {
-        return when {
-            gridConnection.supply.hasSupply == true && ((gridConnection.supply.pvInstalledKwp ?: 0) < 5000) ->
-                ValidationResult(Status.VALID, translate("gridConnection.pvInstalledHigh"))
-            else ->
-                ValidationResult(Status.INVALID, translate("gridConnection.pvInstalledLow"))
+        if (gridConnection.supply.hasSupply == false) {
+            return ValidationResult(
+                Status.NOT_APPLICABLE, message(
+                    en = "No power generation",
+                    nl = "Geen opwek",
+                )
+            )
+        }
+
+        val thresholdKwp = 5000.0
+        val pvInstalledKwp = gridConnection.supply.pvInstalledKwp?.toDouble() ?: 0.0
+
+        return if (pvInstalledKwp > thresholdKwp) {
+            ValidationResult(
+                Status.INVALID, message(
+                    nl = "Geïnstalleerd vermogen zonnepanelen $pvInstalledKwp kW is hoger dan $thresholdKwp kW.",
+                    en = "Installed PV power $pvInstalledKwp kW is higher than $thresholdKwp kW."
+                )
+            )
+        } else {
+            ValidationResult(
+                Status.VALID, message(
+                    nl = "Geïnstalleerd vermogen zonnepanelen $pvInstalledKwp kW is lager dan $thresholdKwp kW.",
+                    en = "Installed PV power is $pvInstalledKwp kW lower than $thresholdKwp kW."
+                )
+            )
         }
     }
 }

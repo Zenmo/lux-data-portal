@@ -9,6 +9,7 @@ import com.zenmo.orm.companysurvey.table.GridConnectionTable.addressId
 import com.zenmo.orm.user.table.UserProjectTable
 import com.zenmo.orm.user.table.UserTable
 import com.zenmo.zummon.companysurvey.*
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
@@ -120,6 +121,7 @@ data class SurveyFilters(
 
 class SurveyRepository(
     private val db: Database,
+    private val projectRepository: ProjectRepository = ProjectRepository(db),
 ) {
     private val timeSeriesRepository: TimeSeriesRepository = TimeSeriesRepository(db)
 
@@ -174,27 +176,41 @@ class SurveyRepository(
                 AddressTable.surveyId eq surveyId
             }
 
-            CompanySurveyTable.deleteWhere {
-                id eq surveyId
-            }
+            val projectId = CompanySurveyTable.deleteReturning(
+                returning = listOf(CompanySurveyTable.projectId),
+                where = { CompanySurveyTable.id eq surveyId },
+            ).map {
+                it[CompanySurveyTable.projectId]
+            }.single()
+
+            projectRepository.updateProjectLastModifiedAt(projectId)
 
             blobNames
         }
     }
 
     fun setIncludeInSimulation(surveyId: UUID, userId: UUID, includeInSimulation: Boolean) {
-        val nUpdated = transaction(db) {
+        val projectIds = transaction(db) {
             CompanySurveyTable
-                .update ({
-                    (CompanySurveyTable.id eq surveyId)
-                        .and(userIsAllowedCondition(userId))
-                }) {
-                    it[CompanySurveyTable.includeInSimulation] = includeInSimulation
+                .updateReturning(
+                    returning = listOf(CompanySurveyTable.projectId),
+                    where = {
+                        (CompanySurveyTable.id eq surveyId)
+                            .and(userIsAllowedCondition(userId))
+                    },
+                    body = {
+                        it[CompanySurveyTable.includeInSimulation] = includeInSimulation
+                    }
+                )
+                .map {
+                    it[CompanySurveyTable.projectId]
                 }
         }
 
-        if (nUpdated == 0) {
-            throw Exception("Can't find survey $surveyId for user $userId")
+        when (projectIds.size) {
+            0 -> throw Exception("Can't find survey $surveyId for user $userId")
+            1 -> projectRepository.updateProjectLastModifiedAt(projectIds.single())
+            else -> throw Exception("Found multiple surveys with id $surveyId for user $userId")
         }
     }
 
@@ -589,7 +605,7 @@ class SurveyRepository(
 
     fun save(survey: Survey, userId: UUID? = null, ): UUID {
         return transaction(db) {
-            val surveyId = CompanySurveyTable.upsertReturning(
+            val (surveyId, projectId) = CompanySurveyTable.upsertReturning(
                 onUpdateExclude = listOf(CompanySurveyTable.createdById),
             ) {
                 it[id] = survey.id
@@ -603,8 +619,10 @@ class SurveyRepository(
                 it[dataSharingAgreed] = survey.dataSharingAgreed
                 it[includeInSimulation] = survey.includeInSimulation
             }.map {
-                it[CompanySurveyTable.id]
+                Pair(it[CompanySurveyTable.id], it[CompanySurveyTable.projectId])
             }.single()
+
+            projectRepository.updateProjectLastModifiedAt(projectId)
 
             AddressTable.batchUpsert(survey.addresses) { address ->
                 this[AddressTable.id] = address.id

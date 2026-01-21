@@ -14,6 +14,15 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
+object TestProjectNames {
+    // user has access to these project
+    val WAARDKWARTIER = "Waardkwartier"
+    val APPELSCHA = "Appelscha"
+
+    // but not this one
+    val HESSENWIEK = "Hessenwiek"
+}
+
 @JvmOverloads
 fun initZtor(port: Int = 8082): StopZtor {
     val db = connectToPostgres()
@@ -27,17 +36,19 @@ fun initZtor(port: Int = 8082): StopZtor {
     val projectRepository = ProjectRepository(db)
     val surveyRepository = SurveyRepository(db)
 
-    val projectName1 = "Waardkwartier"
-    val projectName2 = "Hessenwiek"
-    val projectId1 = projectRepository.saveNewProject(projectName1)
-    val projectId2 = projectRepository.saveNewProject(projectName2)
+    val accessibleProjectIds = listOf(
+        projectRepository.saveNewProject(TestProjectNames.WAARDKWARTIER),
+        projectRepository.saveNewProject(TestProjectNames.APPELSCHA),
+    )
+
+    projectRepository.saveNewProject(TestProjectNames.HESSENWIEK)
     val userId = UUID.fromString(getenv("USER_ID"))
 
-    // give user access to one project but not the other
-    UserRepository(db).saveUser(userId, listOf(projectId1), "Service account test user")
+    // give user access to two of three projects
+    UserRepository(db).saveUser(userId, accessibleProjectIds, "Service account test user")
 
-    surveyRepository.save(createMockSurvey(projectName1))
-    surveyRepository.save(createMockSurvey(projectName2))
+    surveyRepository.save(createMockSurvey(TestProjectNames.WAARDKWARTIER))
+    surveyRepository.save(createMockSurvey(TestProjectNames.HESSENWIEK))
 
     return startTestServer(port)
 }

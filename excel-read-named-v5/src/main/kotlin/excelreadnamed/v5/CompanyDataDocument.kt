@@ -4,15 +4,12 @@ import com.zenmo.zummon.companysurvey.*
 import com.zenmo.zummon.companysurvey.TimeSeriesUnit
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
-import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.AreaReference
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFCell
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.util.*
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 data class CompanyDataDocument(
     private val workbook: XSSFWorkbook,
@@ -38,211 +35,148 @@ data class CompanyDataDocument(
         }
     }
 
-    fun getSurveyObject(): Survey {
+    fun createSurveyObject(): Survey {
         var companyName = getStringField("companyName")
         val project = projectProvider.getProjectByEnergiekeRegioId(
             getIntegerField("projectId")
         )
 
-        val numChargePoints = getNumericField("numChargePoints").toInt()
-
-        val realSurvey =
-            Survey(
-                companyName = companyName,
-                zenmoProject = project.name ?: "Energieke Regio project ${project.energiekeRegioId}",
-                personName = "Contactpersoon",
-                project = project,
-                includeInSimulation = readCompletenessField(),
-                addresses = listOf(
-                    Address(
-                        id = UUID.randomUUID(),
-                        street = getStringField("street"),
-                        houseNumber = getHouseNumber(),
-                        city = getStringField("city"),
-                        gridConnections =
-                        listOf(
-                            GridConnection(
-                                electricity =
-                                Electricity(
-                                    hasConnection = true,
-                                    annualElectricityDelivery_kWh = getNumericField("annualElectricityDeliveryKwh").toInt(),
-                                    annualElectricityFeedIn_kWh =
-                                    getNumericField("annualElectricityFeedinKwh").toInt(),
-                                    // ean = "123456789012345678",
-                                    quarterHourlyDelivery_kWh = getElectricityDeliveryTimeSeries(),
-                                    quarterHourlyFeedIn_kWh = getElectricityFeedIn(),
-                                    quarterHourlyProduction_kWh = getElectricityProduction(),
-                                    grootverbruik = CompanyGrootverbruik(
-                                        contractedConnectionDeliveryCapacity_kW =
-                                        getNumericField(
-                                            "contractedConnectionDeliveryCapacityKw"
-                                        )
-                                            .toInt(),
-                                        contractedConnectionFeedInCapacity_kW =
-                                        getNumericField(
-                                            "contractedConnectionFeedinCapacityKw"
-                                        )
-                                            .toInt(),
-                                        // physicalCapacityKw = 300,
-                                    ),
-                                ),
-                                supply = Supply(
-                                    hasSupply = true,
-                                    pvInstalledKwp =
-                                    getNumericField(
-                                        "pvInstalledKwp"
-                                    )
-                                        .toInt(),
-                                    pvOrientation =
-                                    PVOrientation
-                                        .SOUTH,
-                                    /*pvPlanned = true,
-                                    pvPlannedKwp = 200,
-                                    pvPlannedOrientation = PVOrientation.EAST_WEST,
-                                    pvPlannedYear = 2022,
-                                    windInstalledKw = 300f,
-                                    windPlannedKw = 400f,
-                                    otherSupply = "Other supply",
-                                    missingPvReason = MissingPvReason.OTHER,*/
-                                ),
-                                naturalGas = NaturalGas(
-                                    ean = "",
-                                    hasConnection = getNumericField("naturalGasAnnualDeliveryM3").toInt() > 0,
-                                    annualDelivery_m3 = getNumericField("naturalGasAnnualDeliveryM3").toInt(),
-                                    /*hourlyValuesFiles = listOf(
-                                        File(
-                                            blobName = "qwerty-uurwaarden-2022.csv",
-                                            originalName = "uurwaarden-2022.csv",
-                                            contentType = "text/csv",
-                                            size = 1000,
-                                        ),
-                                    ),*/
-                                    percentageUsedForHeating = 100,
-                                ),
-                                /*heat = Heat(
-                                    heatingTypes = listOf(HeatingType.GAS_BOILER, HeatingType.DISTRICT_HEATING),
-                                    sumGasBoilerKw = 28.8f,
-                                    sumHeatPumpKw = 0f,
-                                    sumHybridHeatPumpElectricKw = 0f,
-                                    annualDistrictHeatingDelivery_GJ = 300f,
-                                    localHeatExchangeDescription = "Local heat exchange description",
-                                    hasUnusedResidualHeat = false,
-                                ),
-                                storage = Storage(
-                                    hasBattery = false,
-                                    batteryCapacityKwh = 0f,
-                                    batteryPowerKw = 0f,
-                                    batterySchedule = "Battery schedule",
-                                    hasPlannedBattery = true,
-                                    plannedBatteryCapacityKwh = 100f,
-                                    plannedBatteryPowerKw = 10f,
-                                    plannedBatterySchedule = "Planned battery schedule",
-                                    hasThermalStorage = true,
-                                ),
-                                mainConsumptionProcess = "Main consumption process",
-                                electrificationPlans = "Electrification plans",
-                                consumptionFlexibility = "Consumption flexibility",
-                                energyOrBuildingManagementSystemSupplier = "EnergyBrothers",
-                                surveyFeedback = "Survey feedback",*/
-                                transport =
-                                Transport(
-                                    hasVehicles =
-                                    true,
-                                    // numDailyCarAndVanCommuters = 14,
-                                    // numDailyCarVisitors = 5,
-                                    // numCommuterAndVisitorChargePoints = 2,
-                                    cars =
-                                    Cars(
-                                        numCars =
-                                        getNumericField(
-                                            "numCars"
-                                        )
-                                            .toInt(),
-                                        numElectricCars =
-                                        getNumericField(
-                                            "numElectricCars"
-                                        )
-                                            .toInt(),
-                                        numChargePoints = numChargePoints,
-                                        powerPerChargePointKw = if (numChargePoints > 0) {
-                                            (getNumericField(
-                                                "chargePointsTotalPowerKw"
-                                            ) / numChargePoints).toFloat()
-                                        } else {
-                                            null
-                                        },
-                                        annualTravelDistancePerCarKm =
-                                        getNumericField(
-                                            "annualTravelDistancePerCarKm"
-                                        )
-                                            .toInt(),
-                                        // numPlannedElectricCars = 0,
-                                        // numPlannedHydrogenCars = 2,
-                                    ),
-                                    trucks =
-                                    Trucks(
-                                        numTrucks =
-                                        getNumericField(
-                                            "numTrucks"
-                                        )
-                                            .toInt(),
-                                        numElectricTrucks =
-                                        getNumericField(
-                                            "numElectricTrucks"
-                                        )
-                                            .toInt(),
-                                        numChargePoints =
-                                        0,
-                                        powerPerChargePointKw =
-                                        0f,
-                                        annualTravelDistancePerTruckKm =
-                                        getNumericField(
-                                            "annualTravelDistancePerTruckKm"
-                                        )
-                                            .toInt(),
-                                        // numPlannedElectricTrucks = 0,
-                                        // numPlannedHydrogenTrucks = 2,
-                                    ),
-                                    vans =
-                                    Vans(
-                                        numVans =
-                                        getNumericField(
-                                            "numVans"
-                                        )
-                                            .toInt(),
-                                        numElectricVans =
-                                        getNumericField(
-                                            "numElectricVans"
-                                        )
-                                            .toInt(),
-                                        numChargePoints =
-                                        0,
-                                        powerPerChargePointKw =
-                                        0f,
-                                        annualTravelDistancePerVanKm =
-                                        getNumericField(
-                                            "annualTravelDistancePerVanKm"
-                                        )
-                                            .toInt(),
-                                        // numPlannedElectricVans = 0,
-                                        // numPlannedHydrogenVans = 2,
-                                    ),
-                                    /*otherVehicles = OtherVehicles(
-                                        hasOtherVehicles = true,
-                                        description = "Other vehicles description",
-                                    )*/
-                                )
-                            )
-                        )
-                    )
+        return Survey(
+            companyName = companyName,
+            zenmoProject = project.name ?: "Energieke Regio project ${project.energiekeRegioId}",
+            personName = "Contactpersoon",
+            project = project,
+            includeInSimulation = readCompletenessField(),
+            addresses = listOf(
+                Address(
+                    street = getStringField("street"),
+                    houseNumber = getHouseNumber(),
+                    city = getStringField("city"),
+                    gridConnections = listOf(createGridConnection())
                 )
             )
-
-        return realSurvey
+        )
     }
 
-    private fun getProject(): String =
-        "EnergiekeRegio_" + getStringField("projectId")
+    private fun createGridConnection(): GridConnection {
+        val numChargePoints = getNumericField("numChargePoints").toInt()
+
+        return GridConnection(
+            electricity = Electricity(
+                hasConnection = true,
+                annualElectricityDelivery_kWh = getNumericField("annualElectricityDeliveryKwh").toInt(),
+                annualElectricityFeedIn_kWh = getNumericField("annualElectricityFeedinKwh").toInt(),
+                // ean = "123456789012345678",
+                quarterHourlyDelivery_kWh = getElectricityDeliveryTimeSeries(),
+                quarterHourlyFeedIn_kWh = getElectricityFeedIn(),
+                quarterHourlyProduction_kWh = getElectricityProduction(),
+                grootverbruik = CompanyGrootverbruik(
+                    contractedConnectionDeliveryCapacity_kW = getNumericField(
+                        "contractedConnectionDeliveryCapacityKw"
+                    ).toInt(),
+                    contractedConnectionFeedInCapacity_kW = getNumericField(
+                        "contractedConnectionFeedinCapacityKw"
+                    ).toInt(),
+                    // physicalCapacityKw = 300,
+                ),
+            ),
+            supply = Supply(
+                hasSupply = true,
+                pvInstalledKwp = getNumericField("pvInstalledKwp").toInt(),
+                pvOrientation = PVOrientation.SOUTH,
+                /*pvPlanned = true,
+                pvPlannedKwp = 200,
+                pvPlannedOrientation = PVOrientation.EAST_WEST,
+                pvPlannedYear = 2022,
+                windInstalledKw = 300f,
+                windPlannedKw = 400f,
+                otherSupply = "Other supply",
+                missingPvReason = MissingPvReason.OTHER,*/
+            ),
+            naturalGas = NaturalGas(
+                ean = "",
+                hasConnection = getNumericField("naturalGasAnnualDeliveryM3").toInt() > 0,
+                annualDelivery_m3 = getNumericField("naturalGasAnnualDeliveryM3").toInt(),
+                /*hourlyValuesFiles = listOf(
+                    File(
+                        blobName = "qwerty-uurwaarden-2022.csv",
+                        originalName = "uurwaarden-2022.csv",
+                        contentType = "text/csv",
+                        size = 1000,
+                    ),
+                ),*/
+                percentageUsedForHeating = 100,
+            ),
+            /*heat = Heat(
+                heatingTypes = listOf(HeatingType.GAS_BOILER, HeatingType.DISTRICT_HEATING),
+                sumGasBoilerKw = 28.8f,
+                sumHeatPumpKw = 0f,
+                sumHybridHeatPumpElectricKw = 0f,
+                annualDistrictHeatingDelivery_GJ = 300f,
+                localHeatExchangeDescription = "Local heat exchange description",
+                hasUnusedResidualHeat = false,
+            ),
+            storage = Storage(
+                hasBattery = false,
+                batteryCapacityKwh = 0f,
+                batteryPowerKw = 0f,
+                batterySchedule = "Battery schedule",
+                hasPlannedBattery = true,
+                plannedBatteryCapacityKwh = 100f,
+                plannedBatteryPowerKw = 10f,
+                plannedBatterySchedule = "Planned battery schedule",
+                hasThermalStorage = true,
+            ),
+            mainConsumptionProcess = "Main consumption process",
+            electrificationPlans = "Electrification plans",
+            consumptionFlexibility = "Consumption flexibility",
+            energyOrBuildingManagementSystemSupplier = "EnergyBrothers",
+            surveyFeedback = "Survey feedback",*/
+            transport = Transport(
+                hasVehicles = true,
+                // numDailyCarAndVanCommuters = 14,
+                // numDailyCarVisitors = 5,
+                // numCommuterAndVisitorChargePoints = 2,
+                cars = Cars(
+                    numCars = getNumericField("numCars").toInt(),
+                    numElectricCars = getNumericField("numElectricCars").toInt(),
+                    numChargePoints = numChargePoints,
+                    powerPerChargePointKw = if (numChargePoints > 0) {
+                        (getNumericField("chargePointsTotalPowerKw") / numChargePoints).toFloat()
+                    } else {
+                        null
+                    },
+                    annualTravelDistancePerCarKm = getNumericField("annualTravelDistancePerCarKm").toInt(),
+                    // numPlannedElectricCars = 0,
+                    // numPlannedHydrogenCars = 2,
+                ),
+                trucks =
+                    Trucks(
+                        numTrucks = getNumericField("numTrucks").toInt(),
+                        numElectricTrucks = getNumericField("numElectricTrucks").toInt(),
+                        numChargePoints = null,
+                        powerPerChargePointKw = null,
+                        annualTravelDistancePerTruckKm = getNumericField("annualTravelDistancePerTruckKm").toInt(),
+                        // numPlannedElectricTrucks = 0,
+                        // numPlannedHydrogenTrucks = 2,
+                    ),
+                vans =
+                    Vans(
+                        numVans = getNumericField("numVans").toInt(),
+                        numElectricVans = getNumericField("numElectricVans").toInt(),
+                        numChargePoints = null,
+                        powerPerChargePointKw = null,
+                        annualTravelDistancePerVanKm = getNumericField("annualTravelDistancePerVanKm").toInt(),
+                        // numPlannedElectricVans = 0,
+                        // numPlannedHydrogenVans = 2,
+                    ),
+                /*otherVehicles = OtherVehicles(
+                    hasOtherVehicles = true,
+                    description = "Other vehicles description",
+                )*/
+            )
+        )
+    }
 
     private fun getHouseNumber(): Int {
         // TODO support houseletters

@@ -5,6 +5,8 @@ import com.zenmo.orm.companysurvey.table.ProjectTable
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
 import com.zenmo.zummon.companysurvey.Project
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
@@ -188,5 +190,29 @@ class ProjectRepositoryTest {
         assertEquals("Updated Project Name", updatedProject.name)
         assertEquals(111, updatedProject.energiekeRegioId)
         assertEquals(listOf("B003", "B004"), updatedProject.buurtCodes)
+    }
+
+    @Test
+    fun testLastModifiedAtIsUpdatedOnProjectSave() {
+        val project = Project(name = "Test Project")
+        val savedProject = projectRepository.save(project)
+        assertNotNull(savedProject.lastModifiedAt)
+        val firstModified = savedProject.lastModifiedAt!!
+
+        // Wait a bit to ensure the timestamp changes if it's updated
+        Thread.sleep(10)
+
+        val updatedProject = project.copy(name = "Updated Name")
+        val savedUpdatedProject = projectRepository.save(updatedProject)
+        assertNotNull(savedUpdatedProject.lastModifiedAt)
+        assertTrue(savedUpdatedProject.lastModifiedAt!! > firstModified)
+    }
+
+    @Test
+    fun testLastModifiedAtIsSetOnSaveNewProject() {
+        val projectName = "New Project"
+        val projectId = projectRepository.saveNewProject(projectName)
+        val project = projectRepository.getProjectById(projectId)
+        assertNotNull(project.lastModifiedAt)
     }
 }

@@ -44,6 +44,15 @@ tasks.withType<Test> {
 
 tasks.test {
     useJUnitPlatform()
+    /**
+     * To debug tests:
+     *
+     * - check your docker host ip
+     * - uncomment the line below
+     * - listen for debug connections on port 5005
+     * - run `docker compose run --rm vallum-test`
+     */
+    //jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,address=172.27.0.1:5005,suspend=y")
 }
 
 publishing {

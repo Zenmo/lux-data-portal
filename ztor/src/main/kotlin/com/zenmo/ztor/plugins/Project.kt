@@ -39,7 +39,9 @@ fun Application.configureProjects(db: Database): Unit {
                 return@get
             }
 
-            call.respond(HttpStatusCode.OK, projectRepository.getProjectsByUserId(userId))
+            val projectName = call.queryParameters["name"]
+            val projects = projectRepository.getProjectsByUserId(userId, projectName)
+            call.respond(HttpStatusCode.OK, projects)
         }
 
         get("/projects/{projectId}") {

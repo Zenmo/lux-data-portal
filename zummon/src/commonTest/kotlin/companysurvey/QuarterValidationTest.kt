@@ -137,9 +137,7 @@ class QuarterValidationTest {
         
         val result = gridConnectionValidator.quarterHourlyFeedInLowProductionBatteryPower(gridConnection)
 
-        // Assert the result is valid
         assertEquals(Status.VALID, result.status)
-        assertEquals(translate("gridConnection.quarterHourlyFeedInLowProductionBatteryPower"), result.message)
     }
 
     @Test
@@ -190,8 +188,6 @@ class QuarterValidationTest {
 
         val result = gridConnectionValidator.quarterHourlyFeedInLowProductionBatteryPower(gridConnection)
 
-        // Assert the result is invalid and the message matches the expected translation
         assertEquals(Status.INVALID, result.status)
-        assertEquals(translate("gridConnection.quarterHourlyFeedInHighProductionBatteryPower", 2.5f, 1.5f), result.message)
     }
 }

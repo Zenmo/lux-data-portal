@@ -5,8 +5,6 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
         "gridConnection" to mapOf(
             "totalPowerChargePointsValid" to "Total power of charge points is valid",
             "totalPowerChargePointsInvalid" to "Total power of charge points %d exceeds allowed capacity %d",
-            "quarterHourlyFeedInLowProductionBatteryPower" to "Every time step in quarter-hourly feed-in is less than or equal to production + battery power",
-            "quarterHourlyFeedInHighProductionBatteryPower" to "Time step in quarter-hourly feed-in (%d) is higher than the production and battery power (%d)",
             "incompatibleQuarterHourly" to "Quarter hourly feed-in is not the same length for Quarter hourly production",
             "incompatibleStartTimeQuarterHourly" to "Quarter hourly feed-in start time is not the same for Quarter hourly production",
         ),
@@ -111,8 +109,6 @@ val translations: Map<Language, Map<String, Map<String, String>>> = mapOf(
         "gridConnection" to mapOf(
             "totalPowerChargePointsValid" to "Totale laadvermogen is geldig",
             "totalPowerChargePointsInvalid" to "Totale laadvermogen %d overschrijdt de toegestane capaciteit %d",
-            "quarterHourlyFeedInLowProductionBatteryPower" to "Elke kwartierwaarde in feed-in is minder dan of gelijk aan de productie plus de batterijcapaciteit.",
-            "quarterHourlyFeedInHighProductionBatteryPower" to "De waarde in dit kwartier van de feed-in (%d) is hoger dan de productie en batterijcapaciteit samen (%d).",
             "incompatibleQuarterHourly" to "De kwartierwaarden van de feed-in en productie hebben niet dezelfde lengte.",
             "incompatibleStartTimeQuarterHourly" to "De starttijd van de kwartierwaarden voor feed-in komt niet overeen met die van de productie.",
         ),

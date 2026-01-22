@@ -1,15 +1,13 @@
 package com.zenmo.zummon.companysurvey
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuid4
-import kotlinx.serialization.Serializable
-import com.zenmo.zummon.BenasherUuidSerializer
 import com.zenmo.zummon.User
 import com.zenmo.zummon.jsonDecoder
 import kotlinx.datetime.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
 import kotlinx.serialization.json.Json
+import kotlin.uuid.Uuid
 
 /**
  * Root object
@@ -17,8 +15,7 @@ import kotlinx.serialization.json.Json
 @JsExport
 @Serializable
 data class Survey(
-    @Serializable(with = BenasherUuidSerializer::class)
-    val id: Uuid = uuid4(),
+    val id: Uuid = Uuid.generateV7(),
     val createdAt: Instant = Clock.System.now().roundToMilliseconds(),
     val zenmoProject: String,
     val companyName: String,
@@ -183,7 +180,7 @@ data class Survey(
      * When you want to create a new Survey from an existing one.
      */
     fun clearIds() = copy(
-        id = uuid4(),
+        id = Uuid.generateV7(),
         createdAt = Clock.System.now().roundToMilliseconds(),
         addresses = addresses.map { it.clearIds() },
         createdBy = null,

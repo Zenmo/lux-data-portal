@@ -22,6 +22,13 @@ dependencies {
 //    implementation("org.apache.logging.log4j:log4j-api:2.14.1")
 //    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+        }
+    }
+}
 
 tasks {
     shadowJar {

@@ -79,7 +79,6 @@ dependencies {
     implementation("com.google.crypto.tink:tink:1.13.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:${libs.versions.kotlinx.datetime.get()}")
-    implementation("com.benasher44:uuid:0.8.4")
 
     // minio for excel uploads storage
     implementation("io.minio:minio:8.5.17")

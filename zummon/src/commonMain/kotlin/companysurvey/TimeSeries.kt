@@ -4,9 +4,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuid4
-import com.zenmo.zummon.BenasherUuidSerializer
 import com.zenmo.zummon.jsonDecoder
 import kotlinx.datetime.*
 import kotlinx.serialization.KSerializer
@@ -19,6 +16,7 @@ import kotlin.js.JsExport
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.uuid.Uuid
 
 private val europeAmsterdam = TimeZone.of("Europe/Amsterdam")
 
@@ -28,8 +26,7 @@ private val europeAmsterdam = TimeZone.of("Europe/Amsterdam")
 @JsExport
 @Serializable
 data class TimeSeries (
-    @Serializable(with = BenasherUuidSerializer::class)
-    val id: Uuid = uuid4(),
+    val id: Uuid = Uuid.generateV7(),
     val type: TimeSeriesType,
     /** Start of the first measurement interval */
     val start: Instant,

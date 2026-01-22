@@ -10,6 +10,9 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
 import java.util.UUID
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
 
 class TimeSeriesRepository(
     val db: Database
@@ -40,7 +43,7 @@ class TimeSeriesRepository(
             (TimeSeriesTable.gridConnectionId eq gridConnectionId)
                 .and(TimeSeriesTable.type eq timeSeries.type)
         }) {
-            it[id] = timeSeries.id
+            it[id] = timeSeries.id.toJavaUuid()
             it[TimeSeriesTable.gridConnectionId] = gridConnectionId
             it[type] = timeSeries.type
             it[start] = timeSeries.start
@@ -52,16 +55,16 @@ class TimeSeriesRepository(
 
     fun getTimeSeriesByGridConnectionIds(
         gridConnectionIds: List<UUID>,
-    ): Map<UUID, List<TimeSeries>> = transaction(db) {
+    ): Map<Uuid, List<TimeSeries>> = transaction(db) {
         TimeSeriesTable.selectAll()
             .where {
                 (TimeSeriesTable.gridConnectionId inList gridConnectionIds)
             }
             .groupBy({
-                it[TimeSeriesTable.gridConnectionId]
+                it[TimeSeriesTable.gridConnectionId].toKotlinUuid()
             }, {
                 TimeSeries(
-                    it[TimeSeriesTable.id],
+                    it[TimeSeriesTable.id].toKotlinUuid(),
                     it[TimeSeriesTable.type],
                     it[TimeSeriesTable.start],
                     it[TimeSeriesTable.timeStep],

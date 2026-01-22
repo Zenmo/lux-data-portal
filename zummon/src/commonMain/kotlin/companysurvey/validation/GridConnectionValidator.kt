@@ -1,6 +1,9 @@
 package com.zenmo.zummon.companysurvey.validation
 
 import com.zenmo.zummon.companysurvey.GridConnection
+import com.zenmo.zummon.companysurvey.toHours
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 
 class GridConnectionValidator : Validator<GridConnection> {
     override fun validate(gridConnection: GridConnection): List<ValidationResult> {
@@ -57,12 +60,21 @@ class GridConnectionValidator : Validator<GridConnection> {
 
     //every time step in quarter-hourly feed-in should be less than or equal to production + battery power
     fun quarterHourlyFeedInLowProductionBatteryPower(gridConnection: GridConnection): ValidationResult {
-        val feedIn = gridConnection.electricity.quarterHourlyFeedIn_kWh
-        val production = gridConnection.electricity.quarterHourlyProduction_kWh
-        val batteryPower = (gridConnection.storage.batteryPowerKw ?: 0.0).toFloat()
+        val feedInTimeSeries = gridConnection.electricity.quarterHourlyFeedIn_kWh
+        val productionTimeSeries = gridConnection.electricity.quarterHourlyProduction_kWh
+
+        if (feedInTimeSeries == null || productionTimeSeries == null) {
+            return ValidationResult(
+                Status.NOT_APPLICABLE,
+                message(
+                    nl = "Geen kwartierwaarden invoeding of opwek",
+                    en = "No quarter-hourly feed-in or production"
+                )
+            )
+        }
 
         // Ensure both time series starts at the same time
-        if (feedIn?.start != production?.start) {
+        if (feedInTimeSeries.start != productionTimeSeries.start) {
             return ValidationResult(
                 Status.INVALID,
                 translate("gridConnection.incompatibleStartTimeQuarterHourly")
@@ -70,24 +82,35 @@ class GridConnectionValidator : Validator<GridConnection> {
         }
 
         // Ensure both time series have the same length for comparison
-        if (feedIn?.values?.size != production?.values?.size) {
+        if (feedInTimeSeries.values.size != productionTimeSeries.values.size) {
             return ValidationResult(
                 Status.INVALID,
                 translate("gridConnection.incompatibleQuarterHourly")
             )
         }
 
+        val batteryPowerKw = (gridConnection.storage.batteryPowerKw ?: 0.0).toFloat()
+        val maxBatteryDischarge = batteryPowerKw * feedInTimeSeries.timeStep.toHours()
+
         // Check each value in the feed-in time series is <= the corresponding production value
-        feedIn?.values?.forEachIndexed { index, value ->
-            production?.values?.let { productionValues ->
-                val maxProduction = (productionValues.getOrNull(index) ?: Float.MIN_VALUE) + batteryPower
-                if (value > maxProduction) {
-                    return ValidationResult(Status.INVALID, translate("gridConnection.quarterHourlyFeedInHighProductionBatteryPower", value, maxProduction))
-                }
+        feedInTimeSeries.values.forEachIndexed { index, feedInKwh ->
+            val productionKwh = productionTimeSeries.values[index]
+            val maxPossibleFeedIn = productionKwh + maxBatteryDischarge
+
+            if (feedInKwh > maxPossibleFeedIn) {
+                val timeStamp = feedInTimeSeries.start.plus(index, feedInTimeSeries.timeStep, TimeZone.of("Europe/Amsterdam"))
+
+                return ValidationResult(Status.INVALID, message(
+                    nl = "De invoeding van $feedInKwh kWh op $timeStamp is hoger dan de opwek ($productionKwh kWh) plus de maximale ontlading van de batterij ($maxBatteryDischarge kWh).",
+                    en = "The feed-in of $feedInKwh kWh at $timeStamp is higher that production ($productionKwh kWh) plus the maximum discharge of the battery ($maxBatteryDischarge kWh)."
+                ))
             }
         }
 
-        return ValidationResult(Status.VALID, translate("gridConnection.quarterHourlyFeedInLowProductionBatteryPower"))
+        return ValidationResult(Status.VALID, message(
+            nl = "Elke kwartierwaarde van de invoeding is minder dan of gelijk aan de opwek plus het vermogen van de batterij.",
+            en = "Every value in quarter-hourly feed-in is less than or equal to production + battery power"
+        ))
     }
 
     /**

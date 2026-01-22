@@ -1,15 +1,14 @@
 package com.zenmo.excelreadnamed.v5
 
 import com.zenmo.zummon.companysurvey.*
-import com.zenmo.zummon.companysurvey.TimeSeriesUnit
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.AreaReference
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFCell
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import java.util.*
 
 data class CompanyDataDocument(
     private val workbook: XSSFWorkbook,
@@ -43,7 +42,7 @@ data class CompanyDataDocument(
 
         return Survey(
             companyName = companyName,
-            zenmoProject = project.name ?: "Energieke Regio project ${project.energiekeRegioId}",
+            zenmoProject = project.name.ifEmpty { "Energieke Regio project ${project.energiekeRegioId}" },
             personName = "Contactpersoon",
             project = project,
             includeInSimulation = readCompletenessField(),
@@ -60,6 +59,12 @@ data class CompanyDataDocument(
 
     private fun createGridConnection(): GridConnection {
         val numChargePoints = getNumericField("numChargePoints").toInt()
+        val chargePointsTotalPowerKw = readNumericFieldWithNegativeOneSentinel("chargePointsTotalPowerKw")
+        val powerPerChargePointKw = if (numChargePoints > 0 && chargePointsTotalPowerKw != null) {
+            (chargePointsTotalPowerKw / numChargePoints).toFloat()
+        } else {
+            null
+        }
 
         return GridConnection(
             electricity = Electricity(
@@ -71,12 +76,12 @@ data class CompanyDataDocument(
                 quarterHourlyFeedIn_kWh = getElectricityFeedIn(),
                 quarterHourlyProduction_kWh = getElectricityProduction(),
                 grootverbruik = CompanyGrootverbruik(
-                    contractedConnectionDeliveryCapacity_kW = getNumericField(
+                    contractedConnectionDeliveryCapacity_kW = readNumericFieldWithNegativeOneSentinel(
                         "contractedConnectionDeliveryCapacityKw"
-                    ).toInt(),
-                    contractedConnectionFeedInCapacity_kW = getNumericField(
+                    )?.toInt(),
+                    contractedConnectionFeedInCapacity_kW = readNumericFieldWithNegativeOneSentinel(
                         "contractedConnectionFeedinCapacityKw"
-                    ).toInt(),
+                    )?.toInt(),
                     // physicalCapacityKw = 300,
                 ),
             ),
@@ -140,12 +145,10 @@ data class CompanyDataDocument(
                 cars = Cars(
                     numCars = getNumericField("numCars").toInt(),
                     numElectricCars = getNumericField("numElectricCars").toInt(),
+                    // In the Energieke Regio excel there is no distinction between charge point types.
+                    // We've decided to put all charge points under cars.
                     numChargePoints = numChargePoints,
-                    powerPerChargePointKw = if (numChargePoints > 0) {
-                        (getNumericField("chargePointsTotalPowerKw") / numChargePoints).toFloat()
-                    } else {
-                        null
-                    },
+                    powerPerChargePointKw = powerPerChargePointKw,
                     annualTravelDistancePerCarKm = getNumericField("annualTravelDistancePerCarKm").toInt(),
                     // numPlannedElectricCars = 0,
                     // numPlannedHydrogenCars = 2,
@@ -209,6 +212,26 @@ data class CompanyDataDocument(
     private fun getNumericField(field: String): Double {
         val cell = getSingleCell(field)
         return cell.numericCellValue
+    }
+
+    /**
+     * Read value while interpreting -1 as null.
+     */
+    private fun readNumericFieldWithNegativeOneSentinel(fieldName: String): Double? {
+        val cell = getSingleCell(fieldName)
+        val cellType = resolveCellType(cell)
+        return when (cellType) {
+            CellType.BLANK -> null
+            CellType.NUMERIC -> cell.numericCellValue.takeUnless { it == -1.0 }
+            else -> throw Exception("Expected numeric cell at ${cell.reference}, named field $fieldName, got ${cell.cellType}")
+        }
+    }
+
+    private fun resolveCellType(cell: XSSFCell): CellType {
+        return when (cell.cellType) {
+            CellType.FORMULA -> cell.cachedFormulaResultType
+            else -> cell.cellType
+        }
     }
 
     fun getIntegerField(field: String): Int {

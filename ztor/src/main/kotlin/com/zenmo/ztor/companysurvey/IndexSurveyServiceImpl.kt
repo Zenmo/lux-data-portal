@@ -42,7 +42,7 @@ class IndexSurveyServiceImpl(
             .map { it.message }
 
         return IndexSurvey(
-            id = survey.id.toKotlinUuid(),
+            id = survey.id,
             companyName = survey.companyName,
             projectName = survey.zenmoProject,
             creationDate = survey.createdAt,

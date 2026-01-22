@@ -42,6 +42,7 @@ services:
             - postgres
         volumes:
             - gradle-zorm-test-home:/home/gradle/.gradle
+#        command: zorm:test --no-daemon --tests "*.SurveyRepositoryTest*"
         command: zorm:test --no-daemon
         env_file:
             - docker/local/ztor.env

@@ -4,7 +4,6 @@ import com.zenmo.orm.cleanDb
 import com.zenmo.orm.companysurvey.table.CompanySurveyTable
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
-import com.zenmo.zummon.companysurvey.Address
 import com.zenmo.zummon.companysurvey.GridConnection
 import com.zenmo.zummon.companysurvey.Survey
 import com.zenmo.zummon.companysurvey.toDuration
@@ -12,7 +11,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.UUID
 import kotlin.test.*
-import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
 class SurveyRepositoryTest {
@@ -38,7 +37,7 @@ class SurveyRepositoryTest {
             addresses = emptyList(),
         )
         surveyRepository.save(survey)
-        val storedSurveys = surveyRepository.getSurveys(CompanySurveyTable.id eq survey.id)
+        val storedSurveys = surveyRepository.getSurveys(CompanySurveyTable.id eq survey.id.toJavaUuid())
         assertEquals(1, storedSurveys.size)
         assertEquals(survey, storedSurveys.first())
     }
@@ -50,7 +49,7 @@ class SurveyRepositoryTest {
         val survey = createMockSurvey(projectName)
 
         surveyRepository.save(survey)
-        val storedSurveys = surveyRepository.getSurveys(CompanySurveyTable.id eq survey.id)
+        val storedSurveys = surveyRepository.getSurveys(CompanySurveyTable.id eq survey.id.toJavaUuid())
         assertEquals(1, storedSurveys.size)
         val storedSurvey = wipeSequence(storedSurveys.first())
 

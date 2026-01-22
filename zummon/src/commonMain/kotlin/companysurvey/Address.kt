@@ -1,16 +1,13 @@
 package com.zenmo.zummon.companysurvey
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuid4
-import com.zenmo.zummon.BenasherUuidSerializer
 import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
+import kotlin.uuid.Uuid
 
 @JsExport
 @Serializable
 data class Address(
-    @Serializable(with = BenasherUuidSerializer::class)
-    val id: Uuid = uuid4(),
+    val id: Uuid = Uuid.generateV7(),
 
     val street: String,
     val houseNumber: Int,
@@ -28,7 +25,7 @@ data class Address(
         get() = gridConnections.toTypedArray()
 
     fun clearIds() = copy(
-        id = uuid4(),
+        id = Uuid.generateV7(),
         gridConnections = gridConnections.map { it.clearId() }
     )
 }

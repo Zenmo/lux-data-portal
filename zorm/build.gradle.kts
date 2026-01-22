@@ -44,6 +44,8 @@ tasks.withType<Test> {
         showExceptions = true
         showStackTraces = true
     }
+
+//    jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,address=172.27.0.1:5005,suspend=y")
 }
 
 kotlin {

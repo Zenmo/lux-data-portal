@@ -5,13 +5,12 @@ import com.zenmo.orm.companysurvey.table.ProjectTable
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
 import com.zenmo.zummon.companysurvey.Project
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
 import kotlin.test.*
 import java.util.UUID
+import kotlin.uuid.toJavaUuid
 
 class ProjectRepositoryTest {
     val db: Database = connectToPostgres()
@@ -34,7 +33,7 @@ class ProjectRepositoryTest {
 
         transaction(db) {
             val result = ProjectTable.selectAll()
-                .where { ProjectTable.id eq savedProject.id }
+                .where { ProjectTable.id eq savedProject.id.toJavaUuid() }
                 .singleOrNull()
 
             assertNotNull(result)

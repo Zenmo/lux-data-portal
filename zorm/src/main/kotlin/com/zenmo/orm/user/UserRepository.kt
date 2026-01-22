@@ -5,7 +5,6 @@ import com.zenmo.orm.companysurvey.ProjectRepository
 import com.zenmo.orm.user.table.UserProjectTable
 import com.zenmo.orm.user.table.UserTable
 import com.zenmo.orm.companysurvey.table.ProjectTable
-import com.zenmo.zummon.companysurvey.Project
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -79,7 +78,7 @@ class UserRepository(
             }.map {
                 hydrateUser(it)
             }.first()
-    
+
            // db project ids
             val currentProjectIds = UserProjectTable
             .selectAll()
@@ -88,7 +87,7 @@ class UserRepository(
             .toSet()
 
             // coming project ids
-            val newProjectIds = user.projects.map { it.id }.toSet()
+            val newProjectIds = user.projects.map { it.id.toJavaUuid() }.toSet()
 
             // add and remove projects
             val projectsToAdd = newProjectIds - currentProjectIds

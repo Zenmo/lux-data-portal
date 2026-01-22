@@ -17,6 +17,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
 
@@ -138,6 +140,8 @@ class SurveyRepository(
         )
     }
 
+    fun deleteSurveyById(surveyId: Uuid, userId: UUID) = deleteSurveyById(surveyId.toJavaUuid(), userId)
+
     /**
      * Delete a survey and all associated data.
      * Returns blob names so the caller can delete them from blob storage.
@@ -213,6 +217,8 @@ class SurveyRepository(
             else -> throw Exception("Found multiple surveys with id $surveyId for user $userId")
         }
     }
+
+    fun getSurveyById(surveyId: Uuid) = getSurveyById(surveyId.toJavaUuid())
 
     fun getSurveyById(surveyId: UUID): Survey? {
         return getSurveys(
@@ -322,7 +328,7 @@ class SurveyRepository(
 
             val addressRows = AddressTable.selectAll()
                 .where {
-                    AddressTable.surveyId inList surveysWithoutAddresses.map { it.id }
+                    AddressTable.surveyId inList surveysWithoutAddresses.map { it.id.toJavaUuid() }
                 }
                 .toList()
 
@@ -348,12 +354,12 @@ class SurveyRepository(
 
             val timeSeriesPerGcId = timeSeriesRepository.getTimeSeriesByGridConnectionIds(gridConnectionIds)
 
-            val filesPerPurpose: Map<Pair<BlobPurpose, UUID>, List<File>> = FileTable.selectAll()
+            val filesPerPurpose: Map<Pair<BlobPurpose, Uuid>, List<File>> = FileTable.selectAll()
                 .where {
                     FileTable.gridConnectionId inList gridConnectionIds
                 }
                 .toList()
-                .groupBy { Pair(it[FileTable.purpose], it[FileTable.gridConnectionId]) }
+                .groupBy { Pair(it[FileTable.purpose], it[FileTable.gridConnectionId].toKotlinUuid()) }
                 .mapValues {
                     it.value.map { hydrateFile(it) }
                 }
@@ -416,14 +422,14 @@ class SurveyRepository(
                 .mapValues {
                     it.value.map { address ->
                         address.copy(
-                            gridConnections = addressIdToGridConnection.getOrDefault(address.id, emptyList())
+                            gridConnections = addressIdToGridConnection.getOrDefault(address.id.toJavaUuid(), emptyList())
                         )
                     }
                 }
 
             surveysWithoutAddresses.map {
                 it.copy(
-                    addresses = surveyIdToAddress.getOrDefault(it.id, emptyList())
+                    addresses = surveyIdToAddress.getOrDefault(it.id.toJavaUuid(), emptyList())
                 )
             }
         }
@@ -431,7 +437,7 @@ class SurveyRepository(
 
     protected fun hydrateSurvey(row: ResultRow): Survey {
         return Survey(
-            id = row[CompanySurveyTable.id],
+            id = row[CompanySurveyTable.id].toKotlinUuid(),
             createdAt = row[CompanySurveyTable.created],
             createdBy = hydrateUser(row),
             zenmoProject = row[ProjectTable.name],
@@ -455,7 +461,7 @@ class SurveyRepository(
 
     protected fun hydrateAddress(row: ResultRow): Address {
         return Address(
-            id = row[AddressTable.id],
+            id = row[AddressTable.id].toKotlinUuid(),
             street = row[AddressTable.street],
             houseNumber = row[AddressTable.houseNumber].toInt(),
             houseNumberSuffix = row[AddressTable.houseNumberSuffix],
@@ -480,7 +486,7 @@ class SurveyRepository(
      */
     protected fun hydrateGridConnection(row: ResultRow): GridConnection {
         return GridConnection(
-            id = row[GridConnectionTable.id],
+            id = row[GridConnectionTable.id].toKotlinUuid(),
             sequence = row[GridConnectionTable.sequence],
             energyOrBuildingManagementSystemSupplier = row[GridConnectionTable.energyOrBuildingManagementSystemSupplier],
             mainConsumptionProcess = row[GridConnectionTable.mainConsumptionProcess],
@@ -608,7 +614,7 @@ class SurveyRepository(
             val (surveyId, projectId) = CompanySurveyTable.upsertReturning(
                 onUpdateExclude = listOf(CompanySurveyTable.createdById),
             ) {
-                it[id] = survey.id
+                it[id] = survey.id.toJavaUuid()
                 it[createdById] = userId
                 it[created] = survey.createdAt
                 it[projectId] = ProjectTable.select(ProjectTable.id)
@@ -625,8 +631,8 @@ class SurveyRepository(
             projectRepository.updateProjectLastModifiedAt(projectId)
 
             AddressTable.batchUpsert(survey.addresses) { address ->
-                this[AddressTable.id] = address.id
-                this[AddressTable.surveyId] = survey.id
+                this[AddressTable.id] = address.id.toJavaUuid()
+                this[AddressTable.surveyId] = survey.id.toJavaUuid()
                 this[AddressTable.street] = address.street
                 this[AddressTable.houseNumber] = address.houseNumber.toUInt()
                 this[AddressTable.houseLetter] = address.houseLetter
@@ -638,14 +644,14 @@ class SurveyRepository(
             GridConnectionTable.batchUpsert(survey.addresses.flatMap { address ->
                 address.gridConnections.map { gridConnection ->
                     Pair(
-                        address.id,
+                        address.id.toJavaUuid(),
                         gridConnection,
                     )
                 }
             }, onUpdateExclude = listOf(GridConnectionTable.sequence)) { pair: Pair<UUID, GridConnection> ->
                 val (addressId, gridConnection) = pair
 
-                this[GridConnectionTable.id] = gridConnection.id
+                this[GridConnectionTable.id] = gridConnection.id.toJavaUuid()
                 this[GridConnectionTable.addressId] = addressId
                 this[GridConnectionTable.pandIds] = gridConnection.pandIds.toList().map { it.value }
 
@@ -757,7 +763,7 @@ class SurveyRepository(
 
             // if the survey has grid connections in the database which are not in the data object, remove those.
             GridConnectionTable.deleteWhere {
-                GridConnectionTable.id.notInList(survey.gridConnectionIds())
+                GridConnectionTable.id.notInList(survey.gridConnectionIds().toJavaUuids())
                     .and(GridConnectionTable.addressId eq anyFrom (
                             AddressTable.select(AddressTable.id).where {
                                 AddressTable.surveyId eq surveyId
@@ -768,7 +774,7 @@ class SurveyRepository(
 
             // if the survey has address in the database which are not in the data object, remove those.
             AddressTable.deleteWhere {
-                AddressTable.id.notInList(survey.addresses.map { it.id })
+                AddressTable.id.notInList(survey.addresses.map { it.id.toJavaUuid() })
                     .and(AddressTable.id.inList(listOf(surveyId)))
             }
 
@@ -776,7 +782,7 @@ class SurveyRepository(
                 for (gridConnection in address.gridConnections) {
                     for (electricityFile in gridConnection.electricity.quarterHourlyValuesFiles) {
                         FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id
+                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
                             it[purpose] = BlobPurpose.ELECTRICITY_VALUES
                             it[blobName] = electricityFile.blobName
                             it[originalName] = electricityFile.originalName
@@ -788,7 +794,7 @@ class SurveyRepository(
                     val authorizationFile = gridConnection.electricity.authorizationFile
                     if (authorizationFile != null) {
                         FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id
+                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
                             it[purpose] = BlobPurpose.ELECTRICITY_AUTHORIZATION
                             it[blobName] = authorizationFile.blobName
                             it[originalName] = authorizationFile.originalName
@@ -799,7 +805,7 @@ class SurveyRepository(
 
                     for (gasFile in gridConnection.naturalGas.hourlyValuesFiles) {
                         FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id
+                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
                             it[purpose] = BlobPurpose.NATURAL_GAS_VALUES
                             it[blobName] = gasFile.blobName
                             it[originalName] = gasFile.originalName
@@ -820,8 +826,8 @@ class SurveyRepository(
 
                     for (timeSeries in timeSeriesList) {
                         TimeSeriesTable.upsert {
-                            it[id] = timeSeries.id
-                            it[gridConnectionId] = gridConnection.id
+                            it[id] = timeSeries.id.toJavaUuid()
+                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
                             it[type] = timeSeries.type
                             it[start] = timeSeries.start
                             it[timeStep] = timeSeries.timeStep
@@ -832,7 +838,7 @@ class SurveyRepository(
                 }
             }
 
-            purgeTimeSeries(survey.gridConnectionIds(), survey.timeSeriesIds())
+            purgeTimeSeries(survey.gridConnectionIds().toJavaUuids(), survey.timeSeriesIds().toJavaUuids())
 
             surveyId
         }
@@ -847,4 +853,8 @@ class SurveyRepository(
                 .and(id notInList timeSeriesIds)
         }
     }
+}
+
+private fun List<Uuid>.toJavaUuids() = map {
+    it.toJavaUuid()
 }

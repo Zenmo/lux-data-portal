@@ -124,6 +124,7 @@ data class SurveyFilters(
 class SurveyRepository(
     private val db: Database,
     private val projectRepository: ProjectRepository = ProjectRepository(db),
+    private val fileRepository: FileRepository = FileRepository(db),
 ) {
     private val timeSeriesRepository: TimeSeriesRepository = TimeSeriesRepository(db)
 
@@ -158,16 +159,7 @@ class SurveyRepository(
                 return@transaction emptyList()
             }
 
-            val blobNames: List<String> = FileTable.deleteReturning(listOf(FileTable.blobName)) {
-                FileTable.gridConnectionId eq anyFrom(
-                    GridConnectionTable.select(GridConnectionTable.id).where(
-                        addressId eq anyFrom(
-                            AddressTable.select(AddressTable.id)
-                                .where(AddressTable.surveyId eq surveyId)
-                        )
-                    )
-                )
-            }.map { it[FileTable.blobName] }
+            val blobNames: List<String> = fileRepository.deleteBySurveyId(surveyId)
 
             GridConnectionTable.deleteWhere {
                 addressId eq anyFrom(
@@ -354,15 +346,8 @@ class SurveyRepository(
 
             val timeSeriesPerGcId = timeSeriesRepository.getTimeSeriesByGridConnectionIds(gridConnectionIds)
 
-            val filesPerPurpose: Map<Pair<BlobPurpose, Uuid>, List<File>> = FileTable.selectAll()
-                .where {
-                    FileTable.gridConnectionId inList gridConnectionIds
-                }
-                .toList()
-                .groupBy { Pair(it[FileTable.purpose], it[FileTable.gridConnectionId].toKotlinUuid()) }
-                .mapValues {
-                    it.value.map { hydrateFile(it) }
-                }
+            val filesPerPurpose: Map<Pair<BlobPurpose, Uuid>, List<File>> =
+                fileRepository.getFilesGroupedByPurposeAndGridConnectionId(gridConnectionIds)
 
             val addressIdToGridConnection = addressIdToGridConnectionWithoutFiles
                 .mapValues { gridConnections ->
@@ -469,15 +454,6 @@ class SurveyRepository(
             postalCode = row[AddressTable.postalCode],
             city = row[AddressTable.city],
             gridConnections = emptyList(), // data from different table
-        )
-    }
-
-    protected fun hydrateFile(row: ResultRow): File {
-        return File(
-            blobName = row[FileTable.blobName],
-            originalName = row[FileTable.originalName],
-            size = row[FileTable.size],
-            contentType = row[FileTable.contentType],
         )
     }
 
@@ -778,42 +754,11 @@ class SurveyRepository(
                     .and(AddressTable.id.inList(listOf(surveyId)))
             }
 
+            val allGridConnections = survey.addresses.flatMap { it.gridConnections }
+            fileRepository.upsertFiles(allGridConnections)
+
             for (address in survey.addresses) {
                 for (gridConnection in address.gridConnections) {
-                    for (electricityFile in gridConnection.electricity.quarterHourlyValuesFiles) {
-                        FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
-                            it[purpose] = BlobPurpose.ELECTRICITY_VALUES
-                            it[blobName] = electricityFile.blobName
-                            it[originalName] = electricityFile.originalName
-                            it[size] = electricityFile.size
-                            it[contentType] = electricityFile.contentType
-                        }
-                    }
-
-                    val authorizationFile = gridConnection.electricity.authorizationFile
-                    if (authorizationFile != null) {
-                        FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
-                            it[purpose] = BlobPurpose.ELECTRICITY_AUTHORIZATION
-                            it[blobName] = authorizationFile.blobName
-                            it[originalName] = authorizationFile.originalName
-                            it[size] = authorizationFile.size
-                            it[contentType] = authorizationFile.contentType
-                        }
-                    }
-
-                    for (gasFile in gridConnection.naturalGas.hourlyValuesFiles) {
-                        FileTable.upsert {
-                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
-                            it[purpose] = BlobPurpose.NATURAL_GAS_VALUES
-                            it[blobName] = gasFile.blobName
-                            it[originalName] = gasFile.originalName
-                            it[size] = gasFile.size
-                            it[contentType] = gasFile.contentType
-                        }
-                    }
-
                     val timeSeriesList = listOfNotNull(
                         gridConnection.electricity.quarterHourlyDelivery_kWh,
                         gridConnection.electricity.quarterHourlyFeedIn_kWh,

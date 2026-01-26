@@ -5,6 +5,8 @@ import com.zenmo.orm.companysurvey.table.TimeSeriesTable
 import org.jetbrains.exposed.sql.*
 import com.zenmo.zummon.companysurvey.TimeSeries
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -36,9 +38,11 @@ class TimeSeriesRepository(
         }
     }
 
+    /**
+     * TODO: this always does an INSERT and never UPDATE
+     * because there is no unique constraint
+     */
     fun upsert(timeSeries: TimeSeries, gridConnectionId: UUID) {
-        // TODO: this always does an INSERT and never UPDATE
-        // because there is no unique constraint
         TimeSeriesTable.upsert(where = {
             (TimeSeriesTable.gridConnectionId eq gridConnectionId)
                 .and(TimeSeriesTable.type eq timeSeries.type)
@@ -72,5 +76,16 @@ class TimeSeriesRepository(
                     it[TimeSeriesTable.values].toFloatArray(),
                 )
             })
+    }
+
+    /**
+     * Remove TimeSeries from the database who are associated with [gridConnectionIds]
+     * excluding those in [timeSeriesIdsToExclude]
+     */
+    fun removeTimeSeriesByGridConnectionsExcludingSpecified(gridConnectionIds: List<UUID>, timeSeriesIdsToExclude: List<UUID>) {
+        TimeSeriesTable.deleteWhere {
+            (gridConnectionId inList gridConnectionIds)
+                .and(id notInList timeSeriesIdsToExclude)
+        }
     }
 }

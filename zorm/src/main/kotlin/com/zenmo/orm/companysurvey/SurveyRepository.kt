@@ -770,32 +770,17 @@ class SurveyRepository(
                     )
 
                     for (timeSeries in timeSeriesList) {
-                        TimeSeriesTable.upsert {
-                            it[id] = timeSeries.id.toJavaUuid()
-                            it[gridConnectionId] = gridConnection.id.toJavaUuid()
-                            it[type] = timeSeries.type
-                            it[start] = timeSeries.start
-                            it[timeStep] = timeSeries.timeStep
-                            it[unit] = timeSeries.unit
-                            it[values] = timeSeries.values.toList()
-                        }
+                        timeSeriesRepository.upsert(timeSeries, gridConnection.id.toJavaUuid())
                     }
                 }
             }
 
-            purgeTimeSeries(survey.gridConnectionIds().toJavaUuids(), survey.timeSeriesIds().toJavaUuids())
+            timeSeriesRepository.removeTimeSeriesByGridConnectionsExcludingSpecified(
+                survey.gridConnectionIds().toJavaUuids(),
+                survey.timeSeriesIds().toJavaUuids()
+            )
 
             surveyId
-        }
-    }
-
-    /**
-     * Remove TimeSeries from the database who are associated with [gridConnectionIds] except those in [timeSeriesIds]
-     */
-    private fun purgeTimeSeries(gridConnectionIds: List<UUID>, timeSeriesIds: List<UUID>) {
-        TimeSeriesTable.deleteWhere {
-            (gridConnectionId inList gridConnectionIds)
-                .and(id notInList timeSeriesIds)
         }
     }
 }

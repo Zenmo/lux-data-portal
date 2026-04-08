@@ -127,6 +127,11 @@ enum class KleinverbruikElectricityConnectionCapacity {
     _3x80A, // majority of connections in 613 postalcodes
     ;// Unknown in 39 postalcodes
 
+    companion object {
+        fun fromAmps(nPhases: Int, ampsPerPhase: Int): KleinverbruikElectricityConnectionCapacity =
+            KleinverbruikElectricityConnectionCapacity.valueOf("_${nPhases}x${ampsPerPhase}A")
+    }
+
     fun toKw(): Double {
         return when (this) {
             _1x25A -> (1 * 25 * 230 * 0.001)

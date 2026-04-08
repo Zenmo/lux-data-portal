@@ -1,5 +1,5 @@
 
-rootProject.name = "zeroweb"
+rootProject.name = "lux-data-portal"
 include(
     "zorm",
     "ztor",

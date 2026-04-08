@@ -5,6 +5,8 @@ import com.zenmo.zummon.companysurvey.Address;
 import com.zenmo.zummon.companysurvey.GridConnection;
 import com.zenmo.zummon.companysurvey.PandID;
 import com.zenmo.zummon.companysurvey.Survey;
+import kotlinx.datetime.Instant;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
+import static kotlinx.datetime.ConvertersKt.toJavaInstant;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class VallumTest {
@@ -60,6 +63,8 @@ public class VallumTest {
         assertEquals("[PandID(value=1234567890123456), PandID(value=6543210987654321)]", pandIds.toString());
 
         var timeSeries = gc.getElectricity().getQuarterHourlyFeedIn_kWh();
+        var kotlinStart = timeSeries.getStart();
+        var javaStart = toJavaInstant(kotlinStart);
 
         assertTrue(timeSeries.getValues().length > 0);
 

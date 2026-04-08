@@ -9,6 +9,7 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFCell
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import kotlin.math.roundToInt
 
 data class CompanyDataDocument(
     private val workbook: XSSFWorkbook,
@@ -50,6 +51,7 @@ data class CompanyDataDocument(
                 Address(
                     street = getStringField("street"),
                     houseNumber = getHouseNumber(),
+                    postalCode = getStringField("postalCode"),
                     city = getStringField("city"),
                     gridConnections = listOf(createGridConnection())
                 )
@@ -66,31 +68,53 @@ data class CompanyDataDocument(
             null
         }
 
+        val kleinverbruikOrGrootverbruik = getKleinverbruikOrGrootverbruik()
+        var grootverbruik: CompanyGrootverbruik? = null
+        var kleinverbruik: CompanyKleinverbruik? = null
+        when (kleinverbruikOrGrootverbruik) {
+            KleinverbruikOrGrootverbruik.KLEINVERBRUIK -> {
+                val numPhases = getNumericField("physicalConnectionPhases").toInt()
+                val ampsPerPhase = getNumericField("physicalConnectionAmperage").toInt()
+
+                kleinverbruik = CompanyKleinverbruik(
+                    connectionCapacity = KleinverbruikElectricityConnectionCapacity.fromAmps(
+                        numPhases, ampsPerPhase
+                    )
+                )
+            }
+            KleinverbruikOrGrootverbruik.GROOTVERBRUIK -> grootverbruik = CompanyGrootverbruik(
+                contractedConnectionDeliveryCapacity_kW = readNumericFieldWithNegativeOneSentinel(
+                    "contractedConnectionDeliveryCapacityKw"
+                )?.toInt(),
+                contractedConnectionFeedInCapacity_kW = readNumericFieldWithNegativeOneSentinel(
+                    "contractedConnectionFeedInCapacityKw"
+                )?.toInt(),
+                // physicalCapacityKw = 300,
+            )
+        }
+
         return GridConnection(
             electricity = Electricity(
                 hasConnection = true,
                 annualElectricityDelivery_kWh = getNumericField("annualElectricityDeliveryKwh").toInt(),
                 annualElectricityFeedIn_kWh = getNumericField("annualElectricityFeedinKwh").toInt(),
+                annualElectricityProduction_kWh = getNumericField("currentGeneration").toInt(),
                 // ean = "123456789012345678",
                 quarterHourlyDelivery_kWh = getElectricityDeliveryTimeSeries(),
                 quarterHourlyFeedIn_kWh = getElectricityFeedIn(),
                 quarterHourlyProduction_kWh = getElectricityProduction(),
-                grootverbruik = CompanyGrootverbruik(
-                    contractedConnectionDeliveryCapacity_kW = readNumericFieldWithNegativeOneSentinel(
-                        "contractedConnectionDeliveryCapacityKw"
-                    )?.toInt(),
-                    contractedConnectionFeedInCapacity_kW = readNumericFieldWithNegativeOneSentinel(
-                        "contractedConnectionFeedinCapacityKw"
-                    )?.toInt(),
-                    // physicalCapacityKw = 300,
-                ),
+                kleinverbruikOrGrootverbruik = kleinverbruikOrGrootverbruik,
+                kleinverbruik = kleinverbruik,
+                grootverbruik = grootverbruik,
             ),
             supply = Supply(
-                hasSupply = true,
+                hasSupply = getBooleanField("hasElectricityProduction"),
                 pvInstalledKwp = getNumericField("pvInstalledKwp").toInt(),
+                /* the field pvOrientation exists in the excel but the possible values are unclear */
                 pvOrientation = PVOrientation.SOUTH,
-                /*pvPlanned = true,
-                pvPlannedKwp = 200,
+                pvPlanned = getBooleanField("hasPlannedPv"),
+                pvPlannedKwp = getNumericField("pvPlannedKwp").toInt(),
+                /*
                 pvPlannedOrientation = PVOrientation.EAST_WEST,
                 pvPlannedYear = 2022,
                 windInstalledKw = 300f,
@@ -100,7 +124,7 @@ data class CompanyDataDocument(
             ),
             naturalGas = NaturalGas(
                 ean = "",
-                hasConnection = getNumericField("naturalGasAnnualDeliveryM3").toInt() > 0,
+                hasConnection = getBooleanField("hasNaturalGasConnection"),
                 annualDelivery_m3 = getNumericField("naturalGasAnnualDeliveryM3").toInt(),
                 /*hourlyValuesFiles = listOf(
                     File(
@@ -110,7 +134,14 @@ data class CompanyDataDocument(
                         size = 1000,
                     ),
                 ),*/
-                percentageUsedForHeating = 100,
+                percentageUsedForHeating = getNumericField("naturalGasAnnualDeliveryM3").let { gasDeliveryM3 ->
+                    if (gasDeliveryM3 == 0.0) {
+                        null
+                    } else {
+                        val heatForBuildingsRatio = getNumericField("naturalGasAnnualDeliveryBuildingM3") / gasDeliveryM3
+                        (100* heatForBuildingsRatio).roundToInt()
+                    }
+                },
             ),
             /*heat = Heat(
                 heatingTypes = listOf(HeatingType.GAS_BOILER, HeatingType.DISTRICT_HEATING),
@@ -121,17 +152,20 @@ data class CompanyDataDocument(
                 localHeatExchangeDescription = "Local heat exchange description",
                 hasUnusedResidualHeat = false,
             ),
+            */
             storage = Storage(
-                hasBattery = false,
-                batteryCapacityKwh = 0f,
-                batteryPowerKw = 0f,
-                batterySchedule = "Battery schedule",
-                hasPlannedBattery = true,
-                plannedBatteryCapacityKwh = 100f,
-                plannedBatteryPowerKw = 10f,
+                hasBattery = getBooleanField("hasBattery"),
+                batteryPowerKw = getNumericField("batteryPowerKw").toFloat(),
+                batteryCapacityKwh = getNumericField("batteryCapacityKwh").toFloat(),
+                hasPlannedBattery = getBooleanField("hasPlannedBattery"),
+                plannedBatteryCapacityKwh = getNumericField("plannedBatteryPowerKw").toFloat(),
+                plannedBatteryPowerKw = getNumericField("plannedBatteryCapacityKwh").toFloat(),
+                /*
                 plannedBatterySchedule = "Planned battery schedule",
                 hasThermalStorage = true,
+                 */
             ),
+            /*
             mainConsumptionProcess = "Main consumption process",
             electrificationPlans = "Electrification plans",
             consumptionFlexibility = "Consumption flexibility",
@@ -177,7 +211,12 @@ data class CompanyDataDocument(
                     hasOtherVehicles = true,
                     description = "Other vehicles description",
                 )*/
-            )
+            ),
+            electrificationPlans = getStringField("plans"),
+            surveyFeedback = listOf(
+                getStringField("remarks"),
+                getStringField("surveyFeedback"),
+            ).filter { it.isNotBlank() }.joinToString("\n"),
         )
     }
 
@@ -212,6 +251,27 @@ data class CompanyDataDocument(
     private fun getNumericField(field: String): Double {
         val cell = getSingleCell(field)
         return cell.numericCellValue
+    }
+
+    private fun getBooleanField(field: String): Boolean? {
+        val cell = getSingleCell(field)
+
+        if (resolveCellType(cell) == CellType.NUMERIC && cell.numericCellValue == 0.0) {
+            return null
+        }
+
+        val stringValue = try {
+            cell.stringCellValue
+        } catch (e: Exception) {
+            throw Exception("Can't read boolean field $field: ${e.message}")
+        }
+
+        return when (stringValue.lowercase()) {
+            "ja" -> true
+            "nee" -> false
+            "" -> null
+            else -> throw Exception("""Expected "Ja" or "Nee" for field $field, got "$stringValue"""")
+        }
     }
 
     /**
@@ -517,5 +577,19 @@ data class CompanyDataDocument(
         }
 
         return result
+    }
+
+    fun getKleinverbruikOrGrootverbruik(): KleinverbruikOrGrootverbruik {
+        val fieldValue = getStringField("grootverbruikOrKleinverbruik").lowercase()
+
+        if (fieldValue.contains("grootverbruik")) {
+            return KleinverbruikOrGrootverbruik.GROOTVERBRUIK
+        }
+
+        if (fieldValue.contains("kleinverbruik")) {
+            return KleinverbruikOrGrootverbruik.KLEINVERBRUIK
+        }
+
+        throw Exception("Unknown value for grootverbruikOrKleinverbruik: ${getStringField("grootverbruikOrKleinverbruik")}")
     }
 }

@@ -15,12 +15,6 @@ services:
         depends_on:
             - postgres
 
-    kleinverbruik:
-        build:
-            context: ./kleinverbruik
-        ports:
-            - 127.0.0.1:80:80
-
     gradle-base:
         image: gradle:9.2.1-jdk21
         working_dir: /home/gradle/zero

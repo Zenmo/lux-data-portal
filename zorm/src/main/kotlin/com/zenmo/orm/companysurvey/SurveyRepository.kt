@@ -476,7 +476,7 @@ class SurveyRepository(
                 ean = row[GridConnectionTable.electricityEan],
                 annualElectricityDelivery_kWh = row[GridConnectionTable.annualElectricityDelivery_kWh]?.toInt(),
                 annualElectricityFeedIn_kWh = row[GridConnectionTable.annualElectricityFeedIn_kWh]?.toInt(),
-                annualElectricityProduction_kWh = row[GridConnectionTable.annualElectricityProduction_kWh]?.toInt(),
+                annualElectricityProduction_kWh = row[GridConnectionTable.annualElectricityProduction_kWh],
                 kleinverbruikOrGrootverbruik = row[GridConnectionTable.kleinverbruikOrGrootverbruik],
                 kleinverbruik = CompanyKleinverbruik(
                     connectionCapacity = row[GridConnectionTable.kleinverbruikElectricityConnectionCapacity]?.let {

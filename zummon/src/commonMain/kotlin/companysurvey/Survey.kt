@@ -65,9 +65,9 @@ data class Survey(
     public val filesArray: Array<File>
         get() = addresses.flatMap {
             it.gridConnections.flatMap {
-                val result = it.electricity?.quarterHourlyValuesFiles?.toMutableList() ?: mutableListOf()
+                val result = it.electricity.quarterHourlyValuesFiles.toMutableList()
                 result.addAll(it.naturalGas.hourlyValuesFiles)
-                if (it.electricity?.authorizationFile != null) {
+                if (it.electricity.authorizationFile != null) {
                     result.add(it.electricity.authorizationFile)
                 }
                 return@flatMap result.toList()

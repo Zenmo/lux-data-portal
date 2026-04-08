@@ -222,7 +222,7 @@ data class TimeSeries (
      * Generated code
      */
     override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
+        var result = id.hashCode()
         result = 31 * result + type.hashCode()
         result = 31 * result + start.hashCode()
         result = 31 * result + timeStep.hashCode()

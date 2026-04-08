@@ -185,7 +185,7 @@ class ProjectRepositoryTest {
         assertNotNull(updatedProject)
         assertEquals(originalProject.id, response.id)
         assertEquals("Updated Project Name", response.name)
-        assertEquals("Updated Project Name", retrievedProject?.name)
+        assertEquals("Updated Project Name", retrievedProject.name)
         assertEquals("Updated Project Name", updatedProject.name)
         assertEquals(111, updatedProject.energiekeRegioId)
         assertEquals(listOf("B003", "B004"), updatedProject.buurtCodes)
@@ -196,7 +196,7 @@ class ProjectRepositoryTest {
         val project = Project(name = "Test Project")
         val savedProject = projectRepository.save(project)
         assertNotNull(savedProject.lastModifiedAt)
-        val firstModified = savedProject.lastModifiedAt!!
+        val firstModified = savedProject.lastModifiedAt
 
         // Wait a bit to ensure the timestamp changes if it's updated
         Thread.sleep(10)
@@ -204,7 +204,7 @@ class ProjectRepositoryTest {
         val updatedProject = project.copy(name = "Updated Name")
         val savedUpdatedProject = projectRepository.save(updatedProject)
         assertNotNull(savedUpdatedProject.lastModifiedAt)
-        assertTrue(savedUpdatedProject.lastModifiedAt!! > firstModified)
+        assertTrue(savedUpdatedProject.lastModifiedAt > firstModified)
     }
 
     @Test

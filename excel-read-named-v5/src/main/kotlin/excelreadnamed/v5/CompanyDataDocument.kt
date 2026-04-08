@@ -335,57 +335,6 @@ data class CompanyDataDocument(
         }
     }
 
-    fun getUsageTable(field: String): FloatArray {
-        val numericValueName = workbook.getName(field)
-        val ref = AreaReference(numericValueName.refersToFormula, workbook.spreadsheetVersion)
-        val cellReference = ref.firstCell
-        // val sheet = workbook.getSheet(cellReference.sheetName)
-        // val row = sheet.getRow(cellReference.row)
-        // val cell = row.getCell(cellReference.col.toInt())
-        // val numericValue =
-        // workbook.getSheet(cellReference.sheetName).getRow(cellReference.row).getCell(cellReference.col.toInt())
-        // return numericValue.numericCellValue
-
-        // Check if table is complete
-        val tableComplete =
-            workbook.getSheet(cellReference.sheetName)
-                .getRow(cellReference.row - 6)
-                .getCell(cellReference.col.toInt() + 1)
-                .booleanCellValue
-
-        println("Table complete? $tableComplete")
-
-        if (tableComplete) {
-            val numCols = ref.lastCell.col - ref.firstCell.col + 1
-            if (numCols != 2) {
-                throw IllegalArgumentException("Number of columns in arrayField should be 2!")
-            }
-
-            val numRows = ref.lastCell.row - ref.firstCell.row + 1
-            var result = FloatArray(numRows)
-
-            for (i in 0 until numRows) {
-                val usage_kWh =
-                    workbook.getSheet(cellReference.sheetName)
-                        .getRow(cellReference.row + i)
-                        .getCell(cellReference.col.toInt() + 1)
-                        .numericCellValue
-                        .toFloat()
-                // println("cell value: ${cell.numericCellValue}")
-
-                val timeStamp = ref.firstCell
-                    .dereference()
-                    .dateCellValue
-                    .toInstant()
-                val kotlinTimeStamp = Instant.fromEpochMilliseconds(timeStamp.toEpochMilli())
-                val currentUsage = TimeSeriesDataPoint(kotlinTimeStamp, usage_kWh)
-                result[i] = currentUsage.value
-            }
-        }
-
-        return floatArrayOf()
-    }
-
     fun getArrayField(field: String): FloatArray {
         val numericValueName = workbook.getName(field)
 

@@ -21,19 +21,19 @@ class TimeSeriesRepository(
 ) {
     fun insertByEan(ean: String, timeSeries: TimeSeries) {
         transaction(db) {
-            val gcId = GridConnectionTable
+            val gridConnectionIds = GridConnectionTable
                 .select(listOf(GridConnectionTable.id))
                 .where {
                     GridConnectionTable.electricityEan eq ean
                 }
-                .single()[GridConnectionTable.id]
+                .map { it[GridConnectionTable.id] }
 
-            if (gcId == null) {
-                throw RuntimeException("No gridconnection found with ean $ean")
-            }
-
-            transaction(db) {
-                upsert(timeSeries, gcId)
+            when (gridConnectionIds.size) {
+                0 -> throw RuntimeException("No gridconnection found with ean $ean")
+                1 -> transaction(db) {
+                    upsert(timeSeries, gridConnectionIds.single())
+                }
+                else -> throw RuntimeException("Found multiple gridconnections with ean $ean")
             }
         }
     }

@@ -134,9 +134,9 @@ class UserRepositoryTest {
 
         // Assertions
         assertNotNull(user)
-        assertEquals(userId.toKotlinUuid(), user?.id)
-        assertEquals("User without projects", user?.note)
-        assertTrue(user?.projects?.isEmpty() == true)
+        assertEquals(userId.toKotlinUuid(), user.id)
+        assertEquals("User without projects", user.note)
+        assertTrue(user.projects.isEmpty())
     }
     
 

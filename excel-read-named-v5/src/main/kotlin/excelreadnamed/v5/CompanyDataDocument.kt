@@ -70,25 +70,33 @@ data class CompanyDataDocument(
         val kleinverbruikOrGrootverbruik = getKleinverbruikOrGrootverbruik()
         var grootverbruik: CompanyGrootverbruik? = null
         var kleinverbruik: CompanyKleinverbruik? = null
+        val numPhases = getNumericField("physicalConnectionPhases").toInt()
+        val ampsPerPhase = getNumericField("physicalConnectionAmperage").toInt()
+
+        val physicalCapacityKw = if (numPhases != 0 && ampsPerPhase != 0) {
+            numPhases * ampsPerPhase
+        } else {
+            null
+        }
+
         when (kleinverbruikOrGrootverbruik) {
             KleinverbruikOrGrootverbruik.KLEINVERBRUIK -> {
-                val numPhases = getNumericField("physicalConnectionPhases").toInt()
-                val ampsPerPhase = getNumericField("physicalConnectionAmperage").toInt()
-
-                kleinverbruik = CompanyKleinverbruik(
-                    connectionCapacity = KleinverbruikElectricityConnectionCapacity.fromAmps(
-                        numPhases, ampsPerPhase
+                if (numPhases != 0 && ampsPerPhase != 0) {
+                    kleinverbruik = CompanyKleinverbruik(
+                        connectionCapacity = KleinverbruikElectricityConnectionCapacity.fromAmps(
+                            numPhases, ampsPerPhase
+                        )
                     )
-                )
+                }
             }
-            KleinverbruikOrGrootverbruik.GROOTVERBRUIK -> grootverbruik = CompanyGrootverbruik(
+            null, KleinverbruikOrGrootverbruik.GROOTVERBRUIK -> grootverbruik = CompanyGrootverbruik(
                 contractedConnectionDeliveryCapacity_kW = readNumericFieldWithNegativeOneSentinel(
                     "contractedConnectionDeliveryCapacityKw"
                 )?.toInt(),
                 contractedConnectionFeedInCapacity_kW = readNumericFieldWithNegativeOneSentinel(
                     "contractedConnectionFeedInCapacityKw"
                 )?.toInt(),
-                // physicalCapacityKw = 300,
+                physicalCapacityKw = physicalCapacityKw,
             )
         }
 
@@ -530,8 +538,11 @@ data class CompanyDataDocument(
         return result
     }
 
-    fun getKleinverbruikOrGrootverbruik(): KleinverbruikOrGrootverbruik {
+    fun getKleinverbruikOrGrootverbruik(): KleinverbruikOrGrootverbruik? {
         val fieldValue = getStringField("grootverbruikOrKleinverbruik").lowercase()
+        if (fieldValue.isBlank()) {
+            return null
+        }
 
         if (fieldValue.contains("grootverbruik")) {
             return KleinverbruikOrGrootverbruik.GROOTVERBRUIK

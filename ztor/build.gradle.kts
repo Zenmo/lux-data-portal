@@ -79,13 +79,12 @@ dependencies {
     implementation("com.google.crypto.tink:tink:1.13.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:${libs.versions.kotlinx.datetime.get()}")
-    implementation("com.benasher44:uuid:0.8.4")
 
     // minio for excel uploads storage
     implementation("io.minio:minio:8.5.17")
 
     testImplementation("io.ktor:ktor-server-test-host:${libs.versions.ktor.get()}")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.3.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${libs.versions.kotlin.get()}")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 

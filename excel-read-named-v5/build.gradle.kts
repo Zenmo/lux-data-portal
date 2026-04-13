@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+//    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.zenmo.excelreadnamed.v5"
@@ -22,12 +22,28 @@ dependencies {
 //    implementation("org.apache.logging.log4j:log4j-api:2.14.1")
 //    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+        }
+    }
+}
 
 tasks {
+    /*
     shadowJar {
         // Need to rename to prevent conflicts with other versions of Apache POI in AnyLogic
         //relocate("org.apache", "zenmo")
         //relocate("org.openxmlformats.schemas.drawingml.x2006.main.ThemeDocument", "zenmo.org.openxmlformats.schemas.drawingml.x2006.main.ThemeDocument"
+    }
+    */
+
+    register<JavaExec>("findUnusedNamedFields") {
+        group = "application"
+        description = "Finds and logs fields in the Excel document which are not used in this codebase."
+        mainClass.set("com.zenmo.excelreadnamed.v5.FindUnusedNamedFieldsKt")
+        classpath = sourceSets["main"].runtimeClasspath
     }
 
 // This config breaks Ztor with error:

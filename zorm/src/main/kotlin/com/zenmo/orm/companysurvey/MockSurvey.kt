@@ -2,11 +2,11 @@ package com.zenmo.orm.companysurvey
 
 import com.zenmo.zummon.companysurvey.*
 import kotlinx.datetime.DateTimeUnit
-import java.util.*
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.uuid.Uuid
 
 val mockSurvey = createMockSurvey()
 
@@ -40,7 +40,7 @@ fun createMockSurvey(
     includeInSimulation = true,
     addresses = listOf(
         Address(
-            id = UUID.randomUUID(),
+            id = Uuid.generateV7(),
             street = "Kerkstraat",
             houseNumber = 35,
             houseLetter = "A",
@@ -220,6 +220,8 @@ fun createMockSurvey(
                             hasOtherVehicles = true,
                             description = "Other vehicles description",
                         ),
+                        numPlannedChargePoints = 99,
+                        plannedChargePointsTotalPowerKw = 120.0,
                     ),
                     pandIds = setOf(
                         PandID("1234567890123456"),

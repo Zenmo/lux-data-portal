@@ -1,6 +1,5 @@
-package com.zenmo
+package com.zenmo.excelreadnamed.v5
 
-import com.zenmo.excelreadnamed.v5.CompanyDataDocument
 import com.zenmo.zummon.companysurvey.*
 
 fun getSurveyObject(filename: String): Survey {

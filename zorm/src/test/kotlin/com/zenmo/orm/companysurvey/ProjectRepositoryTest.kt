@@ -5,13 +5,12 @@ import com.zenmo.orm.companysurvey.table.ProjectTable
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
 import com.zenmo.zummon.companysurvey.Project
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
 import kotlin.test.*
 import java.util.UUID
+import kotlin.uuid.toJavaUuid
 
 class ProjectRepositoryTest {
     val db: Database = connectToPostgres()
@@ -34,7 +33,7 @@ class ProjectRepositoryTest {
 
         transaction(db) {
             val result = ProjectTable.selectAll()
-                .where { ProjectTable.id eq savedProject.id }
+                .where { ProjectTable.id eq savedProject.id.toJavaUuid() }
                 .singleOrNull()
 
             assertNotNull(result)
@@ -186,7 +185,7 @@ class ProjectRepositoryTest {
         assertNotNull(updatedProject)
         assertEquals(originalProject.id, response.id)
         assertEquals("Updated Project Name", response.name)
-        assertEquals("Updated Project Name", retrievedProject?.name)
+        assertEquals("Updated Project Name", retrievedProject.name)
         assertEquals("Updated Project Name", updatedProject.name)
         assertEquals(111, updatedProject.energiekeRegioId)
         assertEquals(listOf("B003", "B004"), updatedProject.buurtCodes)
@@ -197,7 +196,7 @@ class ProjectRepositoryTest {
         val project = Project(name = "Test Project")
         val savedProject = projectRepository.save(project)
         assertNotNull(savedProject.lastModifiedAt)
-        val firstModified = savedProject.lastModifiedAt!!
+        val firstModified = savedProject.lastModifiedAt
 
         // Wait a bit to ensure the timestamp changes if it's updated
         Thread.sleep(10)
@@ -205,7 +204,7 @@ class ProjectRepositoryTest {
         val updatedProject = project.copy(name = "Updated Name")
         val savedUpdatedProject = projectRepository.save(updatedProject)
         assertNotNull(savedUpdatedProject.lastModifiedAt)
-        assertTrue(savedUpdatedProject.lastModifiedAt!! > firstModified)
+        assertTrue(savedUpdatedProject.lastModifiedAt > firstModified)
     }
 
     @Test

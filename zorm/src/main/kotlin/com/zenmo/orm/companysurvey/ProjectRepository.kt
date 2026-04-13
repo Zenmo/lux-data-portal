@@ -10,6 +10,9 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
+import kotlin.uuid.Uuid
+import kotlin.uuid.toJavaUuid
+import kotlin.uuid.toKotlinUuid
 
 class ProjectRepository(
     val db: Database,
@@ -26,6 +29,8 @@ class ProjectRepository(
                 }
         }
     }
+
+    fun getProjectById(id: Uuid) = getProjectById(id.toJavaUuid())
 
     fun getProjectById(id: UUID): Project {
         return getProjects(
@@ -120,7 +125,7 @@ class ProjectRepository(
 
     fun hydrateProject(row: ResultRow): Project {
         return Project(
-            id = row[ProjectTable.id],
+            id = row[ProjectTable.id].toKotlinUuid(),
             name = row[ProjectTable.name],
             energiekeRegioId = row[ProjectTable.energiekeRegioId],
             buurtCodes = row[ProjectTable.buurtCodes],

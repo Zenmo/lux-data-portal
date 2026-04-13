@@ -1,10 +1,10 @@
 package companysurvey
 
-import com.benasher44.uuid.uuid4
 import com.zenmo.zummon.companysurvey.*
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlin.time.Duration.Companion.hours
+import kotlin.uuid.Uuid
 
 val mockSurvey = createMockSurvey()
 
@@ -16,7 +16,7 @@ fun createMockSurvey(projectName: String = "Project") = Survey(
     dataSharingAgreed = true,
     addresses = listOf(
         Address(
-            id = uuid4(),
+            id = Uuid.generateV7(),
             street = "Kerkstraat",
             houseNumber = 35,
             houseLetter = "A",

@@ -16,6 +16,12 @@ data class Transport (
     val cars: Cars = Cars(),
     val agriculture: Agriculture = Agriculture(),
     val otherVehicles: OtherVehicles = OtherVehicles(),
+    /**
+     * These fields are only for Energieke Regio.
+     * Zenmo prefers to ask about charge points for cars, vans, and trucks separately.
+     */
+    val numPlannedChargePoints: Int? = null,
+    val plannedChargePointsTotalPowerKw: Double? = null,
 )
 
 @Serializable

@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 import kotlin.test.*
+import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
 class UserRepositoryTest {
@@ -113,7 +114,7 @@ class UserRepositoryTest {
         assertEquals(2, user.projects.size)
 
         user.projects.forEach { project ->
-            when (project.id) {
+            when (project.id.toJavaUuid()) {
                 project1Id -> assertEquals("Project 1", project.name)
                 project2Id -> assertEquals("Project 2", project.name)
                 else -> fail("Unexpected project ID ${project.id}")
@@ -133,9 +134,9 @@ class UserRepositoryTest {
 
         // Assertions
         assertNotNull(user)
-        assertEquals(userId.toKotlinUuid(), user?.id)
-        assertEquals("User without projects", user?.note)
-        assertTrue(user?.projects?.isEmpty() == true)
+        assertEquals(userId.toKotlinUuid(), user.id)
+        assertEquals("User without projects", user.note)
+        assertTrue(user.projects.isEmpty())
     }
     
 

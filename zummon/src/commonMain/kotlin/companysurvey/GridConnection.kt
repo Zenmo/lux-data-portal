@@ -1,17 +1,14 @@
 package com.zenmo.zummon.companysurvey
 
-import com.benasher44.uuid.Uuid
-import com.benasher44.uuid.uuid4
-import com.zenmo.zummon.BenasherUuidSerializer
 import com.zenmo.zummon.addNotNull
 import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
+import kotlin.uuid.Uuid
 
 @JsExport
 @Serializable
 data class GridConnection(
-    @Serializable(with = BenasherUuidSerializer::class)
-    val id: Uuid = uuid4(),
+    val id: Uuid = Uuid.generateV7(),
 
     // Is always set when object comes from the database.
     val sequence: Int? = null,
@@ -32,7 +29,7 @@ data class GridConnection(
     val electrificationPlans: String = "",
     val surveyFeedback: String = "",
 ) {
-    fun clearId() = copy(id = uuid4())
+    fun clearId() = copy(id = Uuid.generateV7())
 
     fun allTimeSeries(): List<TimeSeries> {
         val list = electricity.allTimeSeries().toMutableList()

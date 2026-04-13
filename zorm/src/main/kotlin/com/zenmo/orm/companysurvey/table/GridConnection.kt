@@ -135,6 +135,9 @@ object GridConnectionTable: ZenmoUUIDTable("grid_connection") {
     val numDailyCarVisitors = uinteger("num_daily_car_visitors").nullable()
     val numCommuterAndVisitorChargePoints = uinteger("num_commuter_and_visitor_charge_points").nullable()
 
+    val numPlannedChargePoints = integer("num_planned_charge_points").nullable()
+    val plannedChargePointsTotalPowerKw = double("planned_charge_points_total_power_kw").nullable()
+
     /**
      * [com.zenmo.zummon.companysurvey.Trucks]
      */

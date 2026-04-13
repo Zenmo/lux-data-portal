@@ -269,6 +269,7 @@ data class CompanyDataDocument(
 
         return when (stringValue.lowercase()) {
             "ja" -> true
+            "misschien" -> true
             "nee" -> false
             "" -> null
             else -> throw Exception("""Expected "Ja" or "Nee" for field $field, got "$stringValue"""")

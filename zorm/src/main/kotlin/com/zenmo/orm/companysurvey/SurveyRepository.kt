@@ -5,11 +5,9 @@ import com.zenmo.joshi.SurveyOrder
 import com.zenmo.joshi.SurveyOrderField
 import com.zenmo.orm.blob.BlobPurpose
 import com.zenmo.orm.companysurvey.table.*
-import com.zenmo.orm.companysurvey.table.GridConnectionTable.addressId
 import com.zenmo.orm.user.table.UserProjectTable
 import com.zenmo.orm.user.table.UserTable
 import com.zenmo.zummon.companysurvey.*
-import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
@@ -546,6 +544,8 @@ class SurveyRepository(
                 numDailyCarAndVanCommuters = row[GridConnectionTable.numDailyCarAndVanCommuters]?.toInt(),
                 numDailyCarVisitors = row[GridConnectionTable.numDailyCarVisitors]?.toInt(),
                 numCommuterAndVisitorChargePoints = row[GridConnectionTable.numCommuterAndVisitorChargePoints]?.toInt(),
+                numPlannedChargePoints = row[GridConnectionTable.numPlannedChargePoints],
+                plannedChargePointsTotalPowerKw = row[GridConnectionTable.plannedChargePointsTotalPowerKw],
                 trucks = Trucks(
                     numTrucks = row[GridConnectionTable.numTrucks]?.toInt(),
                     numElectricTrucks = row[GridConnectionTable.numElectricTrucks]?.toInt(),
@@ -644,6 +644,8 @@ class SurveyRepository(
                 this[GridConnectionTable.numDailyCarAndVanCommuters] = gridConnection.transport.numDailyCarAndVanCommuters?.toUInt()
                 this[GridConnectionTable.numDailyCarVisitors] = gridConnection.transport.numDailyCarVisitors?.toUInt()
                 this[GridConnectionTable.numCommuterAndVisitorChargePoints] = gridConnection.transport.numCommuterAndVisitorChargePoints?.toUInt()
+                this[GridConnectionTable.numPlannedChargePoints] = gridConnection.transport.numPlannedChargePoints
+                this[GridConnectionTable.plannedChargePointsTotalPowerKw] = gridConnection.transport.plannedChargePointsTotalPowerKw
 
                 // trucks
                 this[GridConnectionTable.numTrucks] = gridConnection.transport.trucks.numTrucks?.toUInt()

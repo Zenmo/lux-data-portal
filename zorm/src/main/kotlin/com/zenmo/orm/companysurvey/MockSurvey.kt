@@ -2,7 +2,6 @@ package com.zenmo.orm.companysurvey
 
 import com.zenmo.zummon.companysurvey.*
 import kotlinx.datetime.DateTimeUnit
-import java.util.*
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -221,6 +220,8 @@ fun createMockSurvey(
                             hasOtherVehicles = true,
                             description = "Other vehicles description",
                         ),
+                        numPlannedChargePoints = 99,
+                        plannedChargePointsTotalPowerKw = 120.0,
                     ),
                     pandIds = setOf(
                         PandID("1234567890123456"),

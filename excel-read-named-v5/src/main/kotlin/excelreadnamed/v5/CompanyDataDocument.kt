@@ -2,7 +2,6 @@ package com.zenmo.excelreadnamed.v5
 
 import com.zenmo.zummon.companysurvey.*
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.AreaReference
 import org.apache.poi.ss.util.CellReference
@@ -173,6 +172,8 @@ data class CompanyDataDocument(
             surveyFeedback = "Survey feedback",*/
             transport = Transport(
                 hasVehicles = true,
+                numPlannedChargePoints = readNumericFieldWithNegativeOneSentinel("numPlannedChargePoints")?.toInt(),
+                plannedChargePointsTotalPowerKw = readNumericFieldWithNegativeOneSentinel("plannedChargePointsTotalPower"),
                 // numDailyCarAndVanCommuters = 14,
                 // numDailyCarVisitors = 5,
                 // numCommuterAndVisitorChargePoints = 2,

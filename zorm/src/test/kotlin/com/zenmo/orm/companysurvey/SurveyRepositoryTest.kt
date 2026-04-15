@@ -242,6 +242,35 @@ class SurveyRepositoryTest {
         assertTrue(projectAfterDelete.lastModifiedAt > modifiedAfterSave)
     }
 
+    @Test
+    fun testSetIncludeInSimulation() {
+        val projectName = "Project_Include_Test"
+        val projectId = projectRepository.saveNewProject(projectName)
+        val survey = createMockSurvey(projectName).copy(includeInSimulation = false)
+        surveyRepository.save(survey)
+
+        val userId = UUID.randomUUID()
+        userRepository.saveUser(userId, listOf(projectId))
+
+        val projectAfterSave = projectRepository.getProjectById(projectId)
+        val modifiedAfterSave = projectAfterSave.lastModifiedAt
+
+        Thread.sleep(10)
+
+        surveyRepository.setIncludeInSimulation(survey.id.toJavaUuid(), userId, true)
+
+        val storedSurvey = surveyRepository.getSurveyById(survey.id)!!
+        assertTrue(storedSurvey.includeInSimulation)
+
+        val projectAfterUpdate = projectRepository.getProjectById(projectId)
+        assertTrue(projectAfterUpdate.lastModifiedAt > modifiedAfterSave)
+
+        surveyRepository.setIncludeInSimulation(survey.id.toJavaUuid(), userId, false)
+
+        val storedSurvey2 = surveyRepository.getSurveyById(survey.id)!!
+        assertFalse(storedSurvey2.includeInSimulation)
+    }
+
     private fun wipeSequence(survey: Survey)
     = survey.copy(
         addresses = survey.addresses.map {

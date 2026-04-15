@@ -184,8 +184,8 @@ class SurveyRepository(
     }
 
     fun setIncludeInSimulation(surveyId: UUID, userId: UUID, includeInSimulation: Boolean) {
-        val projectIds = transaction(db) {
-            CompanySurveyTable
+        transaction(db) {
+            val projectIds = CompanySurveyTable
                 .updateReturning(
                     returning = listOf(CompanySurveyTable.projectId),
                     where = {
@@ -199,12 +199,12 @@ class SurveyRepository(
                 .map {
                     it[CompanySurveyTable.projectId]
                 }
-        }
 
-        when (projectIds.size) {
-            0 -> throw Exception("Can't find survey $surveyId for user $userId")
-            1 -> projectRepository.updateProjectLastModifiedAt(projectIds.single())
-            else -> throw Exception("Found multiple surveys with id $surveyId for user $userId")
+            when (projectIds.size) {
+                0 -> throw Exception("Can't find survey $surveyId for user $userId")
+                1 -> projectRepository.updateProjectLastModifiedAt(projectIds.single())
+                else -> throw Exception("Found multiple surveys with id $surveyId for user $userId")
+            }
         }
     }
 

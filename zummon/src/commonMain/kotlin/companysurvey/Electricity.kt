@@ -31,7 +31,10 @@ data class Electricity (
     val annualElectricityDemandKwh
         get() = annualElectricityDelivery_kWh
 
-    fun getHasConnection(): Boolean {
+    /**
+     * Non-nullable check for hasConnection.
+     */
+    fun checkHasConnection(): Boolean {
         return hasConnection ?: false
     }
 

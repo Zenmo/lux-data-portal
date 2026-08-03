@@ -7,11 +7,10 @@ import com.zenmo.orm.dbutil.createKleinverbruikEnumTypeSql
 import com.zenmo.orm.deeplink.DeeplinkTable
 import com.zenmo.orm.energieprestatieonline.RawPandTable
 import com.zenmo.orm.user.ProjectScope
-import com.zenmo.orm.user.table.UserTable
 import com.zenmo.orm.user.table.UserProjectTable
+import com.zenmo.orm.user.table.UserTable
 import com.zenmo.zummon.companysurvey.*
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Schema
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -25,6 +24,7 @@ val enums = listOf(
     TimeSeriesType::class.java,
     TimeSeriesUnit::class.java,
     ProjectScope::class.java,
+    VehicleType::class.java,
 )
 
 val tables = arrayOf(
@@ -32,6 +32,8 @@ val tables = arrayOf(
     GridConnectionTable,
     FileTable,
     TimeSeriesTable,
+    DriveScheduleTable,
+    DriveScheduleTripTable,
     RawPandTable,
     UserTable,
     UserProjectTable,

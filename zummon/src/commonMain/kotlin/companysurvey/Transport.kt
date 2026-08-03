@@ -3,6 +3,7 @@ package com.zenmo.zummon.companysurvey
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 /**
  * Mobiliteit
@@ -28,6 +29,7 @@ data class Transport (
 
 @Serializable
 data class DriveSchedule(
+    val id: Uuid = Uuid.generateV7(),
     val nVehicles: Int,
     val trips: List<Trip> = emptyList(),
 )

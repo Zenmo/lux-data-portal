@@ -1,6 +1,7 @@
 import {UseFormReturn} from 'react-hook-form'
 import {NumberRow} from '../generic/number-row'
 import {ProjectName} from '../project'
+import {DriveSchedules} from './drive-schedules'
 
 export const Cars = ({form, prefix, project}: { form: UseFormReturn, prefix: string, project: ProjectName}) => {
     const {register, watch} = form
@@ -44,6 +45,7 @@ export const Cars = ({form, prefix, project}: { form: UseFormReturn, prefix: str
                             name={`${prefix}.numPlannedHydrogenCars`}
                             form={form} />
                     )}
+                    <DriveSchedules form={form} prefix={prefix} totalVehicles={numCars} />
                 </>
             )}
         </>

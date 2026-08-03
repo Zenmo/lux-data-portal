@@ -1,5 +1,7 @@
 package com.zenmo.zummon.companysurvey
 
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,6 +27,19 @@ data class Transport (
 )
 
 @Serializable
+data class DriveSchedule(
+    val nVehicles: Int,
+    val trips: List<Trip> = emptyList(),
+)
+
+@Serializable
+data class Trip(
+    val dayOfWeek: DayOfWeek,
+    val startTime: LocalTime,
+    val endTime: LocalTime,
+)
+
+@Serializable
 data class Trucks (
     // Current situation
     val numTrucks: Int? = null, // Total number including electric
@@ -32,12 +47,11 @@ data class Trucks (
     val numChargePoints: Int? = null,
     val powerPerChargePointKw: Float? = null,
     val annualTravelDistancePerTruckKm: Int? = null,
-    // Nice to have: ask possible charge times.
 
-    // Disagreement on whether we should ask specifics about planned charge points
     val numPlannedElectricTrucks: Int? = null,
     // Only for bedrijventerrein De Wieken
     val numPlannedHydrogenTrucks: Int? = null,
+    val driveSchedules: List<DriveSchedule> = emptyList(),
 )
 
 @Serializable
@@ -51,6 +65,7 @@ data class Vans (
     val numPlannedElectricVans: Int? = null,
     // Only for bedrijventerrein De Wieken
     val numPlannedHydrogenVans: Int? = null,
+    val driveSchedules: List<DriveSchedule> = emptyList(),
 )
 
 @Serializable
@@ -64,6 +79,7 @@ data class Cars (
     val numPlannedElectricCars: Int? = null,
     // Only for bedrijventerrein De Wieken
     val numPlannedHydrogenCars: Int? = null,
+    val driveSchedules: List<DriveSchedule> = emptyList(),
 )
 
 @Serializable

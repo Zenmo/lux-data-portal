@@ -4,9 +4,9 @@ import com.zenmo.orm.cleanDb
 import com.zenmo.orm.companysurvey.table.CompanySurveyTable
 import com.zenmo.orm.connectToPostgres
 import com.zenmo.orm.user.UserRepository
-import com.zenmo.zummon.companysurvey.GridConnection
-import com.zenmo.zummon.companysurvey.Survey
-import com.zenmo.zummon.companysurvey.toDuration
+import com.zenmo.zummon.companysurvey.*
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalTime
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.UUID
@@ -269,6 +269,56 @@ class SurveyRepositoryTest {
 
         val storedSurvey2 = surveyRepository.getSurveyById(survey.id)!!
         assertFalse(storedSurvey2.includeInSimulation)
+    }
+
+    @Test
+    fun testSaveAndLoadDriveSchedules() {
+        val projectName = "DriveScheduleProject"
+        projectRepository.saveNewProject(projectName)
+
+        val schedule = DriveSchedule(
+            nVehicles = 3,
+            trips = listOf(
+                Trip(
+                    dayOfWeek = DayOfWeek.MONDAY,
+                    startTime = LocalTime(8, 0),
+                    endTime = LocalTime(12, 0),
+                ),
+                Trip(
+                    dayOfWeek = DayOfWeek.TUESDAY,
+                    startTime = LocalTime(13, 0),
+                    endTime = LocalTime(17, 30),
+                ),
+            ),
+        )
+
+        val survey = Survey(
+            companyName = "Zenmo",
+            zenmoProject = projectName,
+            personName = "kofi k.",
+            addresses = listOf(
+                Address(
+                    street = "Boelijn",
+                    houseNumber = 1,
+                    postalCode = "1234KK",
+                    city = "Almere C.",
+                    gridConnections = listOf(
+                        GridConnection(
+                            transport = Transport(
+                                trucks = Trucks(driveSchedules = listOf(schedule)),
+                            ),
+                        )
+                    ),
+                )
+            ),
+        )
+
+        surveyRepository.save(survey)
+        val stored = surveyRepository.getSurveyById(survey.id)!!
+        val storedSchedules = stored.getSingleGridConnection().transport.trucks.driveSchedules
+
+        assertEquals(1, storedSchedules.size)
+        assertEquals(schedule, storedSchedules.single())
     }
 
     private fun wipeSequence(survey: Survey)

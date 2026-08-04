@@ -1,4 +1,4 @@
-<img src="https://zenmo.com/wp-content/uploads/elementor/thumbs/zenmo-logo-website-light-grey-square-o1piz2j6llwl7n0xd84ywkivuyf22xei68ewzwrvmc.png" height="30px"/> Zenmo Zero
+<img src="https://zenmo.com/wp-content/uploads/elementor/thumbs/zenmo-logo-website-light-grey-square-o1piz2j6llwl7n0xd84ywkivuyf22xei68ewzwrvmc.png" height="30px"/> LUX Dataportaal
 ==========
 
 Table of Contents
@@ -11,9 +11,9 @@ Table of Contents
 About
 -----
 
-Zenmo Zero is a tool to simulate local energy systems.
+LUX Energy Twin is a tool to simulate local energy systems.
 
-This repository contains a web-based application to help bootstrap the Zenmo Zero simulation model with external data.
+This repository contains a web-based application to help bootstrap the LUX simulation model with external data.
 
 Works together with:
 

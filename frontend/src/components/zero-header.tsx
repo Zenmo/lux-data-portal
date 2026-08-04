@@ -59,7 +59,7 @@ export const ZeroHeader: FunctionComponent<PropsWithChildren & {}> = () => {
                 <div className={"d-flex flex-row gap-3 align-items-center"}>
                     <Button icon="pi pi-bars" onClick={() => setVisible(true)} className={"rounded rounded-3"} />
                     <span className={" fs-2 fw-bold"}>
-                    Zenmo Zero
+                    LUX Dataportaal
                 </span>
                 </div>
 

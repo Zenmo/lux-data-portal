@@ -13,7 +13,10 @@ data class NaturalGas (
     val hourlyDelivery_m3: TimeSeries? = null,
     val percentageUsedForHeating: Int? = null,
 ) {
-    fun getHasConnection(): Boolean {
+    /**
+     * Non-nullable check for hasConnection.
+     */
+    fun checkHasConnection(): Boolean {
         return hasConnection ?: false
     }
 

@@ -125,6 +125,7 @@ class SurveyRepository(
     private val fileRepository: FileRepository = FileRepository(db),
 ) {
     private val timeSeriesRepository: TimeSeriesRepository = TimeSeriesRepository(db)
+    private val driveScheduleRepository: DriveScheduleRepository = DriveScheduleRepository(db)
 
     fun getHessenpoortSurveys(): List<Survey> {
         return getSurveysByProject("Hessenpoort")
@@ -344,6 +345,8 @@ class SurveyRepository(
 
             val timeSeriesPerGcId = timeSeriesRepository.getTimeSeriesByGridConnectionIds(gridConnectionIds)
 
+            val driveSchedulesPerGcId = driveScheduleRepository.getByGridConnectionIds(gridConnectionIds)
+
             val filesPerPurpose: Map<Pair<BlobPurpose, Uuid>, List<File>> =
                 fileRepository.getFilesGroupedByPurposeAndGridConnectionId(gridConnectionIds)
 
@@ -362,38 +365,49 @@ class SurveyRepository(
                             emptyList()
                         )
 
+                        val schedules = driveSchedulesPerGcId[gridConnection.id] ?: emptyList()
+                        val gcTimeSeries = timeSeriesPerGcId[gridConnection.id]
                         gridConnection.copy(
+                            transport = gridConnection.transport.copy(
+                                trucks = gridConnection.transport.trucks.copy(
+                                    driveSchedules = schedules.filter { it.first == VehicleType.TRUCK }.map { it.second }
+                                ),
+                                vans = gridConnection.transport.vans.copy(
+                                    driveSchedules = schedules.filter { it.first == VehicleType.VAN }.map { it.second }
+                                ),
+                                cars = gridConnection.transport.cars.copy(
+                                    driveSchedules = schedules.filter { it.first == VehicleType.CAR }.map { it.second }
+                                ),
+                                agriculture = gridConnection.transport.agriculture.copy(
+                                    dieselUsageTimeSeries = gcTimeSeries?.singleOrNull {
+                                        it.type == TimeSeriesType.AGRICULTURE_DIESEL_CONSUMPTION
+                                    }
+                                ),
+                            ),
                             electricity = gridConnection.electricity.copy(
                                 quarterHourlyValuesFiles = electricityFiles,
                                 authorizationFile = authorizationFile,
-                                quarterHourlyFeedIn_kWh = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                quarterHourlyFeedIn_kWh = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.ELECTRICITY_FEED_IN
                                 },
-                                quarterHourlyDelivery_kWh = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                quarterHourlyDelivery_kWh = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.ELECTRICITY_DELIVERY
                                 },
-                                quarterHourlyProduction_kWh = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                quarterHourlyProduction_kWh = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.ELECTRICITY_PRODUCTION
                                 },
                             ),
                             naturalGas = gridConnection.naturalGas.copy(
                                 hourlyValuesFiles = gasFiles,
-                                hourlyDelivery_m3 = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                hourlyDelivery_m3 = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.GAS_DELIVERY
                                 }
                             ),
-                            transport = gridConnection.transport.copy(
-                                agriculture = gridConnection.transport.agriculture.copy(
-                                    dieselUsageTimeSeries = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
-                                        it.type == TimeSeriesType.AGRICULTURE_DIESEL_CONSUMPTION
-                                    }
-                                )
-                            ),
                             heat = gridConnection.heat.copy(
-                                heatPumpElectricityConsumptionTimeSeries_kWh = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                heatPumpElectricityConsumptionTimeSeries_kWh = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.HEAT_PUMP_ELECTRICITY_CONSUMPTION
                                 },
-                                heatDeliveryTimeSeries_kWh = timeSeriesPerGcId[gridConnection.id]?.singleOrNull {
+                                heatDeliveryTimeSeries_kWh = gcTimeSeries?.singleOrNull {
                                     it.type == TimeSeriesType.HEAT_DELIVERY
                                 }
                             ),
@@ -757,6 +771,24 @@ class SurveyRepository(
             }
 
             val allGridConnections = survey.addresses.flatMap { it.gridConnections }
+
+            for (gc in allGridConnections) {
+                val gcId = gc.id.toJavaUuid()
+                driveScheduleRepository.upsertForGridConnection(gcId, VehicleType.TRUCK, gc.transport.trucks.driveSchedules)
+                driveScheduleRepository.upsertForGridConnection(gcId, VehicleType.VAN, gc.transport.vans.driveSchedules)
+                driveScheduleRepository.upsertForGridConnection(gcId, VehicleType.CAR, gc.transport.cars.driveSchedules)
+            }
+
+            val allScheduleIds = allGridConnections.flatMap { gc ->
+                gc.transport.trucks.driveSchedules.map { it.id.toJavaUuid() } +
+                gc.transport.vans.driveSchedules.map { it.id.toJavaUuid() } +
+                gc.transport.cars.driveSchedules.map { it.id.toJavaUuid() }
+            }
+            driveScheduleRepository.removeOrphanedSchedules(
+                allGridConnections.map { it.id.toJavaUuid() },
+                allScheduleIds,
+            )
+
             fileRepository.upsertFiles(allGridConnections)
 
             for (address in survey.addresses) {
@@ -785,6 +817,7 @@ class SurveyRepository(
             surveyId
         }
     }
+
 }
 
 private fun List<Uuid>.toJavaUuids() = map {

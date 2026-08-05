@@ -36,6 +36,14 @@ dependencies {
     implementation("com.zenmo:bag:0.0.2")
 }
 
+kotlin {
+    sourceSets {
+        all {
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+        }
+    }
+}
+
 tasks.withType<Test> {
     this.testLogging {
         this.showStandardStreams = true

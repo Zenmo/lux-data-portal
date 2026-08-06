@@ -38,8 +38,8 @@ export const Projects: FunctionComponent = () => {
                             <DataTable
                                 value={projects}
                                 loading={loadingProjects}
-                                sortField="created"
-                                sortOrder={-1}
+                                sortField="name"
+                                sortOrder={1}
                                 showGridlines={true}
                                 paginator
                                 rows={10}

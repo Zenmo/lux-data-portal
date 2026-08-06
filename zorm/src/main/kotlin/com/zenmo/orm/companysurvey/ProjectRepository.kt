@@ -24,7 +24,9 @@ class ProjectRepository(
                 .selectAll()
                 .where{
                     filter
-                }.mapNotNull {
+                }
+                .orderBy(ProjectTable.name)
+                .mapNotNull {
                     hydrateProject(it)
                 }
         }

@@ -4,8 +4,6 @@ import {NumberRow} from './generic/number-row'
 import {TextInput} from './generic/text-input'
 
 export const Address = ({form, prefix}: { form: UseFormReturn , prefix: string }) => {
-    const {register} = form
-
     return (
         <>
             <FormRow
@@ -34,7 +32,8 @@ export const Address = ({form, prefix}: { form: UseFormReturn , prefix: string }
                 label="Postcode"
                 name={`${prefix}.postalCode`}
                 form={form}
-                InputComponent={TextInput} />
+                InputComponent={TextInput}
+                options={{required: true}} />
             <FormRow
                 label="Plaats"
                 name={`${prefix}.city`}

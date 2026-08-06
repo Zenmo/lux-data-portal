@@ -30,8 +30,19 @@ val surveyValidator = Validator<Survey> { survey: Survey ->
     }
 }
 
-val addressValidator = Validator<Address> { address: Address ->
-    address.gridConnections.flatMap {
-        GridConnectionValidator().validate(it)
+val addressValidator = Validator { address: Address ->
+    val results = mutableListOf<ValidationResult>()
+
+    if (address.postalCode.isBlank()) {
+        results.add(ValidationResult(
+            Status.INVALID,
+            message(nl = "Postcode ontbreekt", en = "Postal code is missing"),
+        ))
     }
+
+    results.addAll(address.gridConnections.flatMap {
+        GridConnectionValidator().validate(it)
+    })
+
+    results
 }

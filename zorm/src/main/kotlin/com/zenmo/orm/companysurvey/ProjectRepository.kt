@@ -15,6 +15,9 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
+private const val SQLSTATE_FOREIGN_KEY_VIOLATION = "23503"
+private const val SQLSTATE_UNIQUE_VIOLATION = "23505"
+
 class ProjectRepository(
     val db: Database,
     val clock: Clock = Clock.System,
@@ -68,8 +71,14 @@ class ProjectRepository(
 
 
     fun deleteProject(projectId: UUID): Boolean {
-        return transaction(db) {
-            ProjectTable.deleteWhere { ProjectTable.id eq projectId } > 0
+        try {
+            return transaction(db) {
+                UserProjectTable.deleteWhere { UserProjectTable.projectId eq projectId }
+                ProjectTable.deleteWhere { ProjectTable.id eq projectId } > 0
+            }
+        } catch (e: ExposedSQLException) {
+            if (e.sqlState == SQLSTATE_FOREIGN_KEY_VIOLATION) throw ProjectInUseException()
+            else throw e
         }
     }
 
@@ -101,7 +110,7 @@ class ProjectRepository(
                 }.first()
             }
         } catch (e: ExposedSQLException) {
-            if (e.sqlState == "23505")
+            if (e.sqlState == SQLSTATE_UNIQUE_VIOLATION)
                 throw DuplicateProjectNameException(project.name)
             else throw e
         }

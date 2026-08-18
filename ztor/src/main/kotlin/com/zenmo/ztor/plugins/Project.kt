@@ -12,11 +12,13 @@ import io.ktor.server.application.Application
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
 import com.zenmo.orm.companysurvey.DuplicateProjectNameException
+import com.zenmo.orm.companysurvey.ProjectInUseException
 import org.jetbrains.exposed.sql.Database
 import java.util.UUID
 
@@ -82,6 +84,23 @@ fun Application.configureProjects(db: Database): Unit {
                 call.respond(HttpStatusCode.Created, newProject)
             } catch (e: DuplicateProjectNameException) {
                 call.respond(HttpStatusCode.Conflict, errorMessageToJson(e.message))
+            }
+        }
+
+        // Delete
+        delete("/projects/{projectId}") {
+            adminGuard(call) {
+                val projectId = UUID.fromString(call.parameters["projectId"])
+                try {
+                    val deleted = projectRepository.deleteProject(projectId)
+                    if (deleted) {
+                        call.respond(HttpStatusCode.NoContent)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, errorMessageToJson("Project not found."))
+                    }
+                } catch (e: ProjectInUseException) {
+                    call.respond(HttpStatusCode.Conflict, errorMessageToJson(e.message))
+                }
             }
         }
 

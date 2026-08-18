@@ -15,6 +15,7 @@ export const ProjectForm: FunctionComponent = () => {
 
     const [loading, setLoading] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
 
     const handleCancel = () => {
@@ -30,6 +31,7 @@ export const ProjectForm: FunctionComponent = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target
+        setError(null)
         setProject((prev) => ({...prev, [name]: value} as Project))
     }
 
@@ -86,10 +88,11 @@ export const ProjectForm: FunctionComponent = () => {
             if (response.ok) {
                 navigate(`/projects`)
             } else {
-                alert(`Error fetching project: ${response.statusText}`)
+                const body = await response.json().catch(() => null)
+                const message = body?.error?.message ?? response.statusText
+                setError(message)
             }
         } finally {
-            setIsEditing(false)
             setLoading(false)
         }
     }
@@ -112,8 +115,9 @@ export const ProjectForm: FunctionComponent = () => {
                                     value={project?.name || ""}
                                     onChange={handleInputChange}
                                     disabled={!isEditing}
-                                    className={"form-control bg-transparent"}
+                                    className={"form-control bg-transparent" + (error ? " is-invalid" : "")}
                                 />
+                                {error && <div className="invalid-feedback d-block">{error}</div>}
                             </div>
                             <div className="fv-row">
                                 <label htmlFor="energiekeRegioId" className={"form-label"}>Energieke Regio ID:</label>

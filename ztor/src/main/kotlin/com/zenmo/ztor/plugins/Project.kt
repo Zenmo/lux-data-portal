@@ -16,6 +16,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
+import com.zenmo.orm.companysurvey.DuplicateProjectNameException
 import org.jetbrains.exposed.sql.Database
 import java.util.UUID
 
@@ -76,9 +77,12 @@ fun Application.configureProjects(db: Database): Unit {
                 return@post
             }
 
-            val newProject = projectRepository.saveToUser(project, userId)
-
-            call.respond(HttpStatusCode.Created, newProject)
+            try {
+                val newProject = projectRepository.saveToUser(project, userId)
+                call.respond(HttpStatusCode.Created, newProject)
+            } catch (e: DuplicateProjectNameException) {
+                call.respond(HttpStatusCode.Conflict, errorMessageToJson(e.message))
+            }
         }
 
         // Update

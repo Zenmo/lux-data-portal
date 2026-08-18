@@ -6,6 +6,7 @@ import com.zenmo.orm.user.table.UserTable
 
 import com.zenmo.orm.companysurvey.table.ProjectTable
 import kotlinx.datetime.Clock
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -87,16 +88,22 @@ class ProjectRepository(
     }
 
     private fun saveProject(project: Project): Project {
-        return transaction(db) {
-            ProjectTable.upsertReturning {
-                it[id] = UUID.fromString(project.id.toString())
-                it[name] = project.name
-                it[energiekeRegioId] = project.energiekeRegioId
-                it[buurtCodes] = project.buurtCodes
-                it[lastModifiedAt] = clock.now()
-            }.map {
-                hydrateProject(it)
-            }.first()
+        try {
+            return transaction(db) {
+                ProjectTable.upsertReturning {
+                    it[id] = UUID.fromString(project.id.toString())
+                    it[name] = project.name
+                    it[energiekeRegioId] = project.energiekeRegioId
+                    it[buurtCodes] = project.buurtCodes
+                    it[lastModifiedAt] = clock.now()
+                }.map {
+                    hydrateProject(it)
+                }.first()
+            }
+        } catch (e: ExposedSQLException) {
+            if (e.sqlState == "23505")
+                throw DuplicateProjectNameException(project.name)
+            else throw e
         }
     }
 

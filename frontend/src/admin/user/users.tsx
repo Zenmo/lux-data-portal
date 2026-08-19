@@ -4,9 +4,6 @@ import {Column} from "primereact/column"
 import {useUsers} from "./use-users"
 import {PrimeReactProvider} from "primereact/api"
 import {Project, User} from "zero-zummon"
-
-import "primereact/resources/themes/lara-light-cyan/theme.css"
-import "primeicons/primeicons.css"
 import {deleteSurvey} from "../delete-button"
 import {Button} from "primereact/button"
 import {useNavigate} from "react-router-dom"
@@ -63,32 +60,39 @@ export const Users: FunctionComponent = () => {
                                 <Column
                                     field="projects"
                                     header="Projects"
-                                    body={(user: User) => (
-                                        <ul>
-                                            {((user.projects) as any).map((project: Project) => (
-                                                <li key={project.id}>{project.name}</li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                    body={(user: User) => {
+                                        const projects = (user.projects as any) as Project[]
+                                        if (projects.length > 4) return `${projects.length} projects`
+                                        return (
+                                            <ul>
+                                                {projects.map((project: Project) => (
+                                                    <li key={project.id}>{project.name}</li>
+                                                ))}
+                                            </ul>
+                                        )
+                                    }}
                                 />
                                 <Column
                                     header={"Acties"}
                                     align={"right"}
                                     body={(user: User) => (
-                                        <div className={"d-flex flex-row gap-2 justify-content-end"}>
+                                        <div className={"d-flex flex-row gap-2 justify-content-end align-items-center"}>
+                                            <Button
+                                                label="Projects"
+                                                size="small"
+                                                severity="secondary"
+                                                className="bg-secondary-subtle text-dark fw-lighter border border-0 rounded rounded-3"
+                                                onClick={() => navigate(`/users/${user.id}/projects`)}
+                                            />
                                             <ActionButtonPair
-                                                positiveAction={() => {
-                                                    navigate(`/users/${user.id}/`)
-                                                }}
+                                                positiveAction={() => navigate(`/users/${user.id}/`)}
                                                 negativeAction={() => {
-                                                    deleteSurvey(
-                                                        {
-                                                            id: user.id,
-                                                            type: "users",
-                                                            onDelete: removeUser,
-                                                            setPending: setPending,
-                                                        },
-                                                    ).then()
+                                                    deleteSurvey({
+                                                        id: user.id,
+                                                        type: "users",
+                                                        onDelete: removeUser,
+                                                        setPending: setPending,
+                                                    }).then()
                                                 }}
                                                 positiveIcon="pencil"
                                                 negativeIcon="trash"
@@ -99,6 +103,7 @@ export const Users: FunctionComponent = () => {
                                                 positiveSeverity={"secondary"}
                                                 negativeSeverity={"danger"}
                                                 negativeLoading={pending}
+                                                size={"small"}
                                             />
                                         </div>
                                     )} />

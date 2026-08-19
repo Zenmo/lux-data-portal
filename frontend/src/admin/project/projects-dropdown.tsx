@@ -36,10 +36,11 @@ export const ProjectsDropdown: FunctionComponent<ProjectDropdownProps> = ({
     }, []);
 
     return (
-        <div className={"d-flex flex-row gap-2"}>
+        <div className={"d-flex flex-column gap-2"}>
             <label htmlFor="projects" className={"form-label me-2"}>Update Projects: </label>
             <MultiSelect
                 id="projects"
+                placeholder={"Select projects..."}
                 options={projects.map((project) => ({
                     label: project.name,
                     value: project,
@@ -47,6 +48,9 @@ export const ProjectsDropdown: FunctionComponent<ProjectDropdownProps> = ({
                 value={selectedProjects}
                 onChange={(e) => onChange(e.value)}
                 disabled={disabled}
+                maxSelectedLabels={3}
+                selectedItemsLabel="{0} projects selected"
+                filter
             />
         </div>
     );

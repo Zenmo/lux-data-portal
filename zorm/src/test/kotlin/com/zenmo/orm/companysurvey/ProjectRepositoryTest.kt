@@ -148,7 +148,7 @@ class ProjectRepositoryTest {
         val deleteResult = projectRepository.deleteProject(projectId)
 
         // Verify that the project is successfully deleted
-        assertTrue(deleteResult, "Project should be deleted successfully")
+        assertIs<DeleteProjectResult.Deleted>(deleteResult)
 
         // Verify that the project does not exist in the database anymore
         transaction(db) {
@@ -160,8 +160,8 @@ class ProjectRepositoryTest {
         val nonExistentProjectId = UUID.randomUUID()
         val deleteNonExistentResult = projectRepository.deleteProject(nonExistentProjectId)
 
-        // Verify that deletion of a non-existent project returns false
-        assertFalse(deleteNonExistentResult, "Deletion of non-existent project should return false")
+        // Verify that deletion of a non-existent project returns NotFound
+        assertIs<DeleteProjectResult.NotFound>(deleteNonExistentResult)
     }
 
     @Test

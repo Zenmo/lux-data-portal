@@ -1,26 +1,22 @@
 package com.zenmo.ztor.plugins
 
+import com.zenmo.orm.companysurvey.DeleteProjectResult
+import com.zenmo.orm.companysurvey.DuplicateProjectNameException
 import com.zenmo.orm.companysurvey.ProjectRepository
 import com.zenmo.orm.user.UserRepository
 import com.zenmo.ztor.errorMessageToJson
 import com.zenmo.ztor.user.adminGuardFactory
 import com.zenmo.ztor.user.getUserId
 import com.zenmo.zummon.companysurvey.Project
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.JsonConvertException
-import io.ktor.server.application.Application
-import io.ktor.server.plugins.BadRequestException
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
-import com.zenmo.orm.companysurvey.DuplicateProjectNameException
-import com.zenmo.orm.companysurvey.ProjectInUseException
+import io.ktor.http.*
+import io.ktor.serialization.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
-import java.util.UUID
+import java.util.*
 
 fun Application.configureProjects(db: Database): Unit {
     val userRepository = UserRepository(db)
@@ -69,7 +65,7 @@ fun Application.configureProjects(db: Database): Unit {
                     call.respond(HttpStatusCode.BadRequest, errorMessageToJson(e.cause?.message))
                     return@post
                 }
-                call.respond(HttpStatusCode.BadRequest,  errorMessageToJson(e.message))
+                call.respond(HttpStatusCode.BadRequest, errorMessageToJson(e.message))
                 return@post
             }
 
@@ -91,15 +87,14 @@ fun Application.configureProjects(db: Database): Unit {
         delete("/projects/{projectId}") {
             adminGuard(call) {
                 val projectId = UUID.fromString(call.parameters["projectId"])
-                try {
-                    val deleted = projectRepository.deleteProject(projectId)
-                    if (deleted) {
-                        call.respond(HttpStatusCode.NoContent)
-                    } else {
-                        call.respond(HttpStatusCode.NotFound, errorMessageToJson("Project not found."))
+                when (val result = projectRepository.deleteProject(projectId)) {
+                    is DeleteProjectResult.Deleted -> call.respond(HttpStatusCode.NoContent)
+                    is DeleteProjectResult.NotFound -> call.respond(HttpStatusCode.NotFound, errorMessageToJson(result.message))
+                    is DeleteProjectResult.InUse -> call.respond(HttpStatusCode.Conflict, errorMessageToJson(result.message))
+                    is DeleteProjectResult.Failure -> {
+                        call.application.environment.log.error("Error deleting project", result.cause)
+                        call.respond(HttpStatusCode.InternalServerError, errorMessageToJson(result.message))
                     }
-                } catch (e: ProjectInUseException) {
-                    call.respond(HttpStatusCode.Conflict, errorMessageToJson(e.message))
                 }
             }
         }
@@ -114,7 +109,7 @@ fun Application.configureProjects(db: Database): Unit {
                     call.respond(HttpStatusCode.BadRequest, errorMessageToJson(e.cause?.message))
                     return@put
                 }
-                call.respond(HttpStatusCode.BadRequest,  errorMessageToJson(e.message))
+                call.respond(HttpStatusCode.BadRequest, errorMessageToJson(e.message))
                 return@put
             }
 

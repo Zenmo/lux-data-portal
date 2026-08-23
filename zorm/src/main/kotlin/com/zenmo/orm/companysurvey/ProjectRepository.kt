@@ -70,15 +70,18 @@ class ProjectRepository(
     }
 
 
-    fun deleteProject(projectId: UUID): Boolean {
-        try {
-            return transaction(db) {
+    fun deleteProject(projectId: UUID): DeleteProjectResult {
+        return try {
+            val deleted = transaction(db) {
                 UserProjectTable.deleteWhere { UserProjectTable.projectId eq projectId }
                 ProjectTable.deleteWhere { ProjectTable.id eq projectId } > 0
             }
+            if (deleted) DeleteProjectResult.Deleted else DeleteProjectResult.NotFound
         } catch (e: ExposedSQLException) {
-            if (e.sqlState == SQLSTATE_FOREIGN_KEY_VIOLATION) throw ProjectInUseException()
-            else throw e
+            if (e.sqlState == SQLSTATE_FOREIGN_KEY_VIOLATION) DeleteProjectResult.InUse()
+            else DeleteProjectResult.Failure(e)
+        } catch (e: Exception) {
+            DeleteProjectResult.Failure(e)
         }
     }
 

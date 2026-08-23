@@ -2,12 +2,14 @@ import {FunctionComponent, useState} from "react"
 import {Button} from "primereact/button"
 import {Sidebar} from "primereact/sidebar"
 import {css} from "@emotion/react"
+import {useLocation} from "react-router-dom"
 import {useUser} from "../../user/use-user"
 import {redirectToLogin} from "../../admin/user/use-users"
 import {BsList} from "react-icons/bs"
 import {SidebarHeader, ZENMO_LOGO} from "./sidebar-header"
 import {SidebarNav} from "./sidebar-nav"
 import {UserFooter} from "./user-footer"
+import {getActiveNavItem} from "./nav-items"
 
 const sidebarStyle = css({
     width: "17rem",
@@ -35,6 +37,9 @@ const navbarHeadingStyle = css({
 export const ZeroHeader: FunctionComponent = () => {
     const {isLoggedIn, username, isAdmin} = useUser()
     const [visible, setVisible] = useState(false)
+    const location = useLocation()
+    const activeNavItem = getActiveNavItem(location.pathname)
+    const activeNavItemLabel = activeNavItem && activeNavItem.to !== "/" ? `- ${activeNavItem.label}` : ""
 
     return (
         <div className="app-header">
@@ -50,7 +55,9 @@ export const ZeroHeader: FunctionComponent = () => {
                     <button onClick={() => setVisible(true)} css={hamburgerButtonStyle}>
                         <BsList />
                     </button>
-                    <h3 css={navbarHeadingStyle}>LUX Dataportaal</h3>
+                    <div>
+                        <h3 css={navbarHeadingStyle}>LUX Dataportaal {activeNavItemLabel}</h3>
+                    </div>
                 </div>
 
                 <div style={{display: "flex", alignItems: "center", gap: "0.5rem"}}>

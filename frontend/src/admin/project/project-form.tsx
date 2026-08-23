@@ -2,11 +2,11 @@ import React, {FormEvent, FunctionComponent, useEffect, useState} from "react"
 import {useNavigate, useParams} from "react-router-dom"
 import {PrimeReactProvider} from "primereact/api"
 import {InputText} from "primereact/inputtext"
-import {Button} from "primereact/button"
 import {Project} from "zero-zummon"
 import {redirectToLogin} from "./use-projects"
 import {Content} from "../../components/Content"
 import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
+import {BsFolderPlus} from "react-icons/bs"
 
 export const ProjectForm: FunctionComponent = () => {
     const {projectId} = useParams<{ projectId: string }>()
@@ -14,19 +14,12 @@ export const ProjectForm: FunctionComponent = () => {
     const [originalData, setOriginalData] = useState<Project | null>(null)
 
     const [loading, setLoading] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
 
     const handleCancel = () => {
-        if (originalData) {
-            setProject(originalData) // Revert to original data
-        }
-        setIsEditing(false)
-    }
-
-    const handleEditToggle = () => {
-        setIsEditing(true)
+        setProject(originalData)
+        navigate(-1)
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,8 +54,6 @@ export const ProjectForm: FunctionComponent = () => {
                 }
             }
             fetchProject()
-        } else {
-            setIsEditing(true)
         }
     }, [projectId])
 
@@ -100,59 +91,68 @@ export const ProjectForm: FunctionComponent = () => {
     return (
         <PrimeReactProvider>
             <Content>
-                <div className={"d-flex justify-content-center"}>
-                    <div className={"d-flex flex-column justify-content-center w-25"}>
-                        <h3>{projectId ? "Edit Project" : "Add Project"}</h3>
-                        <form
-                            onSubmit={handleSubmit}
-                            className={"form d-flex flex-column gap-3"}
-                        >
-                            <div className="fv-row">
-                                <label htmlFor="name" className={"form-label"}>Name:</label>
-                                <InputText
-                                    id="name"
-                                    name="name"
-                                    value={project?.name || ""}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className={"form-control bg-transparent" + (error ? " is-invalid" : "")}
-                                />
-                                {error && <div className="invalid-feedback d-block">{error}</div>}
+                <div className={"d-flex flex-md-row flex-column gap-4 align-items-start justify-content-center"}>
+                    <div className={"col-lg-4 col-md-8 col-12 d-flex flex-column gap-4"}>
+                        <div className={"d-flex align-items-center"}>
+                            <div
+                                className={"d-flex align-items-center rounded-4 p-2 me-3 bg-light border border-1 border-light-subtle shadow-sm"}>
+                                <BsFolderPlus size={32} className={"text-primary-emphasis"} />
                             </div>
-                            <div className="fv-row">
-                                <label htmlFor="energiekeRegioId" className={"form-label"}>Energieke Regio ID:</label>
-                                <InputText
-                                    id="energiekeRegioId"
-                                    name="energiekeRegioId"
-                                    value={project?.energiekeRegioId?.toString() || ""}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className={"form-control bg-transparent"}
-                                />
-                            </div>
-
-                            <div className={"d-flex justify-content-end w-100"}>
-                                {isEditing ? (
-                                    <>
-                                        <ActionButtonPair
-                                            positiveText={"Cancel"}
-                                            positiveIcon={undefined}
-                                            positiveAction={handleCancel}
-                                            positiveClassName="bg-secondary-subtle text-dark border border-0 "
-                                            positiveSeverity={"secondary"}
-                                            negativeSeverity={null}
-                                            showNegative={true}
-                                            negativeButtonType={"submit"}
-                                            negativeText={loading ? "Saving..." : "Save"}
-                                            negativeDisabled={loading}
-                                            positiveDisabled={loading}
-                                            className={"d-flex flex-row gap-3"}
+                            {projectId ? (
+                                <span className={"fw-bold text-primary-emphasis"}>Project bewerken: {project?.name}</span>
+                            ) : (
+                                <span className={"fw-bold text-primary-emphasis"}>Maak een nieuw project aan.</span>
+                            )}
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className={"card bg-light shadow-sm border-light-subtle rounded-4"}>
+                                <div className={"card-header align-content-center"}>
+                                    <h6 className={"card-title p-2 m-0"}>Projectgegevens</h6>
+                                </div>
+                                <div className={"card-body p-4 d-flex flex-column gap-3"}>
+                                    <div className="fv-row">
+                                        <label htmlFor="name"
+                                               className={"form-label text-primary-emphasis"}>Naam:</label>
+                                        <InputText
+                                            id="name"
+                                            name="name"
+                                            value={project?.name || ""}
+                                            onChange={handleInputChange}
+                                            className={"form-control bg-transparent" + (error ? " is-invalid" : "")}
                                         />
-                                    </>
-                                ) : (
-                                    <Button label="Edit" onClick={handleEditToggle} type="button" disabled={loading}
-                                            className="rounded rounded-3" />
-                                )}
+                                        {error && <div className="invalid-feedback d-block">{error}</div>}
+                                    </div>
+                                    <div className="fv-row">
+                                        <label htmlFor="energiekeRegioId"
+                                               className={"form-label text-primary-emphasis"}>
+                                            Energieke Regio ID:
+                                        </label>
+                                        <InputText
+                                            id="energiekeRegioId"
+                                            name="energiekeRegioId"
+                                            value={project?.energiekeRegioId?.toString() || ""}
+                                            onChange={handleInputChange}
+                                            className={"form-control bg-transparent"}
+                                        />
+                                    </div>
+                                </div>
+                                <div
+                                    className={"card-footer bg-white border-0 rounded-bottom-4 d-flex justify-content-end"}>
+                                    <ActionButtonPair
+                                        positiveText={"Cancel"}
+                                        positiveIcon={undefined}
+                                        positiveAction={handleCancel}
+                                        positiveClassName="bg-secondary-subtle text-dark border border-0"
+                                        positiveSeverity={"secondary"}
+                                        negativeSeverity={null}
+                                        showNegative={true}
+                                        negativeButtonType={"submit"}
+                                        negativeText={loading ? "Saving..." : "Save"}
+                                        negativeDisabled={loading}
+                                        positiveDisabled={loading}
+                                        className={"d-flex flex-row gap-3"}
+                                    />
+                                </div>
                             </div>
                         </form>
                     </div>

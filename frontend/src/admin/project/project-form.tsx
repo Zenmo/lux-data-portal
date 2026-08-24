@@ -7,6 +7,7 @@ import {redirectToLogin} from "./use-projects"
 import {Content} from "../../components/Content"
 import {ActionButtonPair} from "../../components/helpers/ActionButtonPair"
 import {BsFolderPlus} from "react-icons/bs"
+import {BuurtcodesChipsInput} from "./buurtcodes-chips-input"
 
 export const ProjectForm: FunctionComponent = () => {
     const {projectId} = useParams<{ projectId: string }>()
@@ -99,7 +100,8 @@ export const ProjectForm: FunctionComponent = () => {
                                 <BsFolderPlus size={32} className={"text-primary-emphasis"} />
                             </div>
                             {projectId ? (
-                                <span className={"fw-bold text-primary-emphasis"}>Project bewerken: {project?.name}</span>
+                                <span
+                                    className={"fw-bold text-primary-emphasis"}>Project bewerken: {project?.name}</span>
                             ) : (
                                 <span className={"fw-bold text-primary-emphasis"}>Maak een nieuw project aan.</span>
                             )}
@@ -110,7 +112,7 @@ export const ProjectForm: FunctionComponent = () => {
                                     <h6 className={"card-title p-2 m-0"}>Projectgegevens</h6>
                                 </div>
                                 <div className={"card-body p-4 d-flex flex-column gap-3"}>
-                                    <div className="fv-row">
+                                    <div className="d-flex flex-column">
                                         <label htmlFor="name"
                                                className={"form-label text-primary-emphasis"}>Naam:</label>
                                         <InputText
@@ -122,7 +124,7 @@ export const ProjectForm: FunctionComponent = () => {
                                         />
                                         {error && <div className="invalid-feedback d-block">{error}</div>}
                                     </div>
-                                    <div className="fv-row">
+                                    <div className="d-flex flex-column">
                                         <label htmlFor="energiekeRegioId"
                                                className={"form-label text-primary-emphasis"}>
                                             Energieke Regio ID:
@@ -135,6 +137,7 @@ export const ProjectForm: FunctionComponent = () => {
                                             className={"form-control bg-transparent"}
                                         />
                                     </div>
+                                    <BuurtcodesChipsInput project={project} onChange={setProject} />
                                 </div>
                                 <div
                                     className={"card-footer bg-white border-0 rounded-bottom-4 d-flex justify-content-end"}>

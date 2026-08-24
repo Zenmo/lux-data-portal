@@ -49,6 +49,14 @@ export const Projects: FunctionComponent = () => {
                                 <Column align={"right"} field="energiekeRegioId" header="Energie Regio Id" sortable
                                         filter />
                                 <Column
+                                    field="buurtCodes"
+                                    header="Buurtcodes"
+                                    body={(project: Project) => {
+                                        const codes = project.buurtCodes as unknown as string[]
+                                        return codes.length > 4 ? `${codes.length} buurtcodes` : codes.join(", ")
+                                    }}
+                                />
+                                <Column
                                     header={"Acties"}
                                     align={"right"}
                                     body={(project: Project) => (

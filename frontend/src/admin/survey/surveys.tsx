@@ -1,7 +1,5 @@
 import React, {FunctionComponent} from "react"
 import {PrimeReactProvider} from "primereact/api"
-import "primereact/resources/themes/lara-light-cyan/theme.css"
-import "primeicons/primeicons.css"
 import {ZeroLayout} from "../../components/zero-layout"
 import {AdminButtonRow} from "./admin-button-row"
 import {Content} from "../../components/Content"

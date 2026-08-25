@@ -30,86 +30,82 @@ export const Users: FunctionComponent = () => {
                         />
                     }
                 >
-                    <div className={"card border border-0 shadow-lg rounded rounded-4"}>
-                        <div className={"card-body p-0"}>
-
-                            <DataTable
-                                value={users}
-                                loading={loadingUsers}
-                                sortField="created"
-                                sortOrder={-1}
-                                showGridlines={true}
-                                paginator
-                                rows={10}
-                                className={"rounded rounded-4"}
-                            >
-                                <Column field="note" header="Note" sortable filter filterPlaceholder="Search by note" />
-                                <Column
-                                    field="isAdmin"
-                                    header="Admin"
-                                    body={(user: User) => (
-                                        <div style={{textAlign: "center"}}>
-                                            {user.isAdmin ? (
-                                                <span style={{color: "green"}}>✔</span>
-                                            ) : (
-                                                <span style={{color: "red"}}>✘</span>
-                                            )}
-                                        </div>
+                    <DataTable
+                        value={users}
+                        loading={loadingUsers}
+                        sortField="created"
+                        sortOrder={-1}
+                        showGridlines={true}
+                        stripedRows
+                        paginator
+                        rows={10}
+                        className={"rounded rounded-4"}
+                    >
+                        <Column field="note" header="Note" sortable filter filterPlaceholder="Search by note" />
+                        <Column
+                            field="isAdmin"
+                            header="Admin"
+                            body={(user: User) => (
+                                <div style={{textAlign: "center"}}>
+                                    {user.isAdmin ? (
+                                        <span style={{color: "green"}}>✔</span>
+                                    ) : (
+                                        <span style={{color: "red"}}>✘</span>
                                     )}
-                                />
-                                <Column
-                                    field="projects"
-                                    header="Projects"
-                                    body={(user: User) => {
-                                        const projects = (user.projects as any) as Project[]
-                                        if (projects.length > 4) return `${projects.length} projects`
-                                        return (
-                                            <ul>
-                                                {projects.map((project: Project) => (
-                                                    <li key={project.id}>{project.name}</li>
-                                                ))}
-                                            </ul>
-                                        )
-                                    }}
-                                />
-                                <Column
-                                    header={"Acties"}
-                                    align={"right"}
-                                    body={(user: User) => (
-                                        <div className={"d-flex flex-row gap-2 justify-content-end align-items-center"}>
-                                            <Button
-                                                label="Projects"
-                                                size="small"
-                                                severity="secondary"
-                                                className="bg-secondary-subtle text-dark fw-lighter border border-0 rounded rounded-3"
-                                                onClick={() => navigate(`/users/${user.id}/projects`)}
-                                            />
-                                            <ActionButtonPair
-                                                positiveAction={() => navigate(`/users/${user.id}/`)}
-                                                negativeAction={() => {
-                                                    deleteSurvey({
-                                                        id: user.id,
-                                                        type: "users",
-                                                        onDelete: removeUser,
-                                                        setPending: setPending,
-                                                    }).then()
-                                                }}
-                                                positiveIcon="pencil"
-                                                negativeIcon="trash"
-                                                positiveClassName="bg-secondary-subtle text-dark border border-0"
-                                                negativeClassName="bg-danger"
-                                                showNegative={true}
-                                                className={"d-flex flex-row align-items-center gap-2"}
-                                                positiveSeverity={"secondary"}
-                                                negativeSeverity={"danger"}
-                                                negativeLoading={pending}
-                                                size={"small"}
-                                            />
-                                        </div>
-                                    )} />
-                            </DataTable>
-                        </div>
-                    </div>
+                                </div>
+                            )}
+                        />
+                        <Column
+                            field="projects"
+                            header="Projects"
+                            body={(user: User) => {
+                                const projects = (user.projects as any) as Project[]
+                                if (projects.length > 4) return `${projects.length} projects`
+                                return (
+                                    <ul>
+                                        {projects.map((project: Project) => (
+                                            <li key={project.id}>{project.name}</li>
+                                        ))}
+                                    </ul>
+                                )
+                            }}
+                        />
+                        <Column
+                            header={"Acties"}
+                            align={"right"}
+                            body={(user: User) => (
+                                <div className={"d-flex flex-row gap-2 justify-content-end align-items-center"}>
+                                    <Button
+                                        label="Projects"
+                                        size="small"
+                                        severity="secondary"
+                                        className="bg-secondary-subtle text-dark fw-lighter border border-0 rounded rounded-3"
+                                        onClick={() => navigate(`/users/${user.id}/projects`)}
+                                    />
+                                    <ActionButtonPair
+                                        positiveAction={() => navigate(`/users/${user.id}/`)}
+                                        negativeAction={() => {
+                                            deleteSurvey({
+                                                id: user.id,
+                                                type: "users",
+                                                onDelete: removeUser,
+                                                setPending: setPending,
+                                            }).then()
+                                        }}
+                                        positiveIcon="pencil"
+                                        negativeIcon="trash"
+                                        positiveClassName="bg-secondary-subtle text-dark border border-0"
+                                        negativeClassName="bg-danger"
+                                        showNegative={true}
+                                        className={"d-flex flex-row align-items-center gap-2"}
+                                        positiveSeverity={"secondary"}
+                                        negativeSeverity={"danger"}
+                                        negativeLoading={pending}
+                                        size={"small"}
+                                    />
+                                </div>
+                            )} />
+                    </DataTable>
                 </ZeroLayout>
             </Content>
         </PrimeReactProvider>

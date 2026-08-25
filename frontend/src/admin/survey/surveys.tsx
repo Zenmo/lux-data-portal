@@ -13,11 +13,7 @@ export const Surveys: FunctionComponent = () => {
                     subtitle="Beheer uitvraag bedrijven"
                     trailingContent={<AdminButtonRow />}
                 >
-                    <div className={"card border border-0 shadow-lg rounded rounded-4"}>
-                        <div className={"card-body p-0"}>
-                            <SurveyTable />
-                        </div>
-                    </div>
+                    <SurveyTable />
                 </ZeroLayout>
             </Content>
         </PrimeReactProvider>

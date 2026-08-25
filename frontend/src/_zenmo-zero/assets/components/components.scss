@@ -1,2 +1,9 @@
-// Bootstrap components
-@import "bootstrap/scss/bootstrap";
+
+// Wrapped in a cascade layer so Bootstrap's Reboot resets (e.g. `td, th { border-width: 0 }`)
+// never outrank PrimeReact's own styles, which ship inside `@layer primereact`.
+// Unlayered CSS always beats layered CSS regardless of selector specificity, so without
+// this, Bootstrap's low-specificity table reset was silently killing PrimeReact DataTable
+// borders/gridlines. Layer priority order is fixed in src/index.css.
+@layer bootstrap {
+  @import "bootstrap/scss/bootstrap";
+}

@@ -1,7 +1,6 @@
 import {useState} from "react";
 import {useOnce} from "../../hooks/use-once";
-import {Project, projectsFromJson } from "zero-zummon"
-import {useNavigate} from "react-router-dom";
+import {Project} from "zero-zummon"
 
 type UseProjectReturn = {
     loadingProjects: boolean,
@@ -36,7 +35,7 @@ export const useProjects = (): UseProjectReturn => {
                 throw new Error(`Failed: ${response.statusText}`)
             }
 
-            setProjects(projectsFromJson(await response.text()))
+            setProjects(await response.json())
         } catch (error) {
             alert((error as Error).message)
         } finally {

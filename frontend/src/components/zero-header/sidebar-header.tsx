@@ -2,7 +2,7 @@ import {FunctionComponent} from "react"
 import {css} from "@emotion/react"
 import {BsX} from "react-icons/bs"
 
-export const ZENMO_LOGO = "https://zenmo.com/wp-content/uploads/2018/12/zenmo-logo-website-grey.png"
+export const ZENMO_LOGO = "https://zenmo.com/icons/zenmo-logo.svg"
 
 const sidebarHeaderStyle = css({
     display: "flex",

@@ -15,3 +15,10 @@ export const navItems: NavItem[] = [
     {to: "/users", label: "Users", icon: <BsPeople />, adminOnly: true},
     {to: "/simulation", label: "Simulation", icon: <BsBarChartLine />},
 ]
+
+export const getActiveNavItem = (pathname: string): NavItem | undefined => {
+    const isActive = (path: string) => path === "/" ? pathname === "/" : pathname.startsWith(path)
+    return navItems
+        .filter(item => isActive(item.to))
+        .sort((a, b) => b.to.length - a.to.length)[0]
+}

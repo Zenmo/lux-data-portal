@@ -6,6 +6,8 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import './_zenmo-zero/assets/style.scss'
 import './_zenmo-zero/assets/style.react.scss'
+import "primereact/resources/themes/lara-light-cyan/theme.css"
+import "primeicons/primeicons.css"
 import {IndexSurveyClient, FetchIndexSurveysRequest} from "joshi"
 
 const root = ReactDOM.createRoot(

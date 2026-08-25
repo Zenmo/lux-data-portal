@@ -10,6 +10,7 @@ import {Projects} from "./admin/project/projects";
 import {Users} from "./admin/user/users";
 import {ProjectForm} from "./admin/project/project-form";
 import {UserForm} from "./admin/user/user-form";
+import {UserProjectsPage} from "./admin/user/user-projects-page";
 import {fetchSurveyById, SurveyById, SurveyByIdLoaderData} from "./components/company-survey-v2/survey-by-id"
 import {Intro} from "./components/intro"
 import {ExcelImport} from "./excel-import/excel-import"
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
             {path: "/users", element: <Users />},
             {path: "/users/new-user", element: <UserForm />},
             {path: "/users/:userId", element: <UserForm />},
+            {path: "/users/:userId/projects", element: <UserProjectsPage />},
             {path: "/simulation", element: <Simulation />},
         ],
     },

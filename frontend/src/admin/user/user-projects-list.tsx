@@ -21,7 +21,9 @@ export const UserProjectsList: FunctionComponent<UserProjectsListProps> = ({
             <div className={"card-body p-0"}>
                 <DataTable value={projects}
                            paginator
-                           rows={10}>
+                           rows={10}
+                           sortField="name"
+                           sortOrder={1}>
                     <Column field="name" header="Project Name" />
                     <Column
                         body={(project: Project) => (

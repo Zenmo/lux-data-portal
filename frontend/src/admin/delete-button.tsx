@@ -18,7 +18,9 @@ export const deleteSurvey = async ({type, id, onDelete, setPending}: DeleteSurve
             credentials: "include",
         })
         if (!response.ok) {
-            throw new Error(`Could not delete: ${response.status} ${response.statusText}`)
+            const body = await response.json().catch(() => null)
+            const message = body?.error?.message ?? `Could not delete: ${response.status} ${response.statusText}`
+            throw new Error(message)
         }
         onDelete(id)
     } catch (error) {

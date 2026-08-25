@@ -6,6 +6,7 @@ import com.zenmo.orm.user.table.UserTable
 
 import com.zenmo.orm.companysurvey.table.ProjectTable
 import kotlinx.datetime.Clock
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -13,6 +14,9 @@ import java.util.UUID
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
+
+private const val SQLSTATE_FOREIGN_KEY_VIOLATION = "23503"
+private const val SQLSTATE_UNIQUE_VIOLATION = "23505"
 
 class ProjectRepository(
     val db: Database,
@@ -24,7 +28,9 @@ class ProjectRepository(
                 .selectAll()
                 .where{
                     filter
-                }.mapNotNull {
+                }
+                .orderBy(ProjectTable.name)
+                .mapNotNull {
                     hydrateProject(it)
                 }
         }
@@ -64,9 +70,18 @@ class ProjectRepository(
     }
 
 
-    fun deleteProject(projectId: UUID): Boolean {
-        return transaction(db) {
-            ProjectTable.deleteWhere { ProjectTable.id eq projectId } > 0
+    fun deleteProject(projectId: UUID): DeleteProjectResult {
+        return try {
+            val deleted = transaction(db) {
+                UserProjectTable.deleteWhere { UserProjectTable.projectId eq projectId }
+                ProjectTable.deleteWhere { ProjectTable.id eq projectId } > 0
+            }
+            if (deleted) DeleteProjectResult.Deleted else DeleteProjectResult.NotFound
+        } catch (e: ExposedSQLException) {
+            if (e.sqlState == SQLSTATE_FOREIGN_KEY_VIOLATION) DeleteProjectResult.InUse()
+            else DeleteProjectResult.Failure(e)
+        } catch (e: Exception) {
+            DeleteProjectResult.Failure(e)
         }
     }
 
@@ -85,16 +100,22 @@ class ProjectRepository(
     }
 
     private fun saveProject(project: Project): Project {
-        return transaction(db) {
-            ProjectTable.upsertReturning {
-                it[id] = UUID.fromString(project.id.toString())
-                it[name] = project.name
-                it[energiekeRegioId] = project.energiekeRegioId
-                it[buurtCodes] = project.buurtCodes
-                it[lastModifiedAt] = clock.now()
-            }.map {
-                hydrateProject(it)
-            }.first()
+        try {
+            return transaction(db) {
+                ProjectTable.upsertReturning {
+                    it[id] = UUID.fromString(project.id.toString())
+                    it[name] = project.name
+                    it[energiekeRegioId] = project.energiekeRegioId
+                    it[buurtCodes] = project.buurtCodes
+                    it[lastModifiedAt] = clock.now()
+                }.map {
+                    hydrateProject(it)
+                }.first()
+            }
+        } catch (e: ExposedSQLException) {
+            if (e.sqlState == SQLSTATE_UNIQUE_VIOLATION)
+                throw DuplicateProjectNameException(project.name)
+            else throw e
         }
     }
 

@@ -49,6 +49,7 @@ export const SurveyTable: FunctionComponent = () => {
             value={indexSurveys}
             loading={pending}
             showGridlines={true}
+            stripedRows
             paginator
             rowsPerPageOptions={[5, 10, 20, 50, 100]}
             first={request.offset ?? 0}

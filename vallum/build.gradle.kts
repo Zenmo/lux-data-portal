@@ -1,11 +1,14 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.net.URI
+import org.gradle.api.component.AdhocComponentWithVariants
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
+    // Shadow is used for backwards compatibility testing
     id("com.gradleup.shadow") version "9.2.2"
     `maven-publish`
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("com.dorongold.task-tree") version "4.0.2"
 }
 group = "com.zenmo"
 version = System.getenv("VERSION_TAG") ?: "dev"
@@ -15,22 +18,25 @@ repositories {
     mavenCentral()
 }
 
-val ktor_version = "3.0.3"
+val ktor_version = "3.5.2"
 
 dependencies {
     testImplementation(kotlin("test"))
     // Ztor is started in the test.
     testImplementation(project(":ztor"))
     testImplementation(project(":zorm"))
+    testImplementation(project(":zummon"))
     testImplementation("org.jetbrains.exposed:exposed-core:${libs.versions.exposed.get()}")
 
-    implementation(project(":zummon"))
+    // Zummon is bundled into the jar as a part of Vallum.
+    // `compileOnly` keeps it out of the published POM and module metadata.
+    compileOnly(project(":zummon"))
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${libs.versions.kotlinx.serialization.json.get()}")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:${libs.versions.kotlinx.datetime.get()}")
+    api("org.jetbrains.kotlinx:kotlinx-datetime:${libs.versions.kotlinx.datetime.get()}")
 }
 
 kotlin {
@@ -60,6 +66,28 @@ tasks.test {
     //jvmArgs("-agentlib:jdwp=transport=dt_socket,server=n,address=172.27.0.1:5005,suspend=y")
 }
 
+java {
+    withSourcesJar()
+}
+
+// Add zummon to artifact
+tasks.jar {
+    from(project(":zummon").the<SourceSetContainer>()["jvmMain"].output)
+}
+
+// Add zummon Kotlin source files to artifact
+tasks.named<Jar>("sourcesJar") {
+    from(project(":zummon").the<KotlinMultiplatformExtension>().sourceSets["commonMain"].kotlin)
+}
+
+// The shadow plugin adds the fat jar for publishing as shadowRuntimeElements.
+// This keeps it out of the publication.
+afterEvaluate {
+    (components["java"] as AdhocComponentWithVariants).withVariantsFromConfiguration(configurations["shadowRuntimeElements"]) {
+        skip()
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -67,7 +95,7 @@ publishing {
             artifactId = "vallum"
             version = System.getenv("VERSION_TAG") ?: "dev"
 
-            artifact(tasks["shadowJar"] as ShadowJar)
+            from(components["java"])
         }
     }
     repositories {
